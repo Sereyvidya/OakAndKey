@@ -1,5 +1,16 @@
 "use client";
 
+function Img({ src, className = "", alt }) {
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className={`h-full w-full object-cover ${className}`}
+      draggable={false}
+    />
+  );
+}
+
 export default function PhotoGrid({ images = [] }) {
   const count = images.length;
 
@@ -11,16 +22,6 @@ export default function PhotoGrid({ images = [] }) {
       </div>
     );
   }
-
-  // helper
-  const Img = ({ src, className, alt }) => (
-    <img
-      src={src}
-      alt={alt}
-      className={`w-full h-full object-cover ${className}`}
-      draggable={false}
-    />
-  );
 
   // 1 image: hero
   if (count === 1) {

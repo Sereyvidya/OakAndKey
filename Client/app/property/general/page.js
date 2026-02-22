@@ -12,6 +12,7 @@ export default function GeneralInfoPage() {
 
   const images = usePropertyStore((s) => s.images);
   const addImages = usePropertyStore((s) => s.addImages);
+  const setImages = usePropertyStore((s) => s.setImages);
   const removeImage = usePropertyStore((s) => s.removeImage);
 
   const handleSubmit = (e) => {
@@ -44,6 +45,7 @@ export default function GeneralInfoPage() {
   };
 
   const clearAgentPhoto = () => setFormData({ agentPhoto: null });
+  const clearImages = () => setImages([]);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -70,6 +72,7 @@ export default function GeneralInfoPage() {
       onAgentPhotoChange={handleAgentPhotoChange}
       onClearAgentPhoto={clearAgentPhoto}
       onImageChange={handleImageChange}
+      onClearImages={clearImages}
       onRemoveImage={removeImage}
       onSubmit={handleSubmit}
     />

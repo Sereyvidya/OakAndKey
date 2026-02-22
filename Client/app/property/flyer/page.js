@@ -13,6 +13,7 @@ const TEMPLATES = [
   { key: "grid", label: "Grid" },
   { key: "minimal", label: "Minimal" },
 ];
+const SUPPORTED_RESIDENTIAL_TYPES = new Set(["house", "condo"]);
 
 export default function FlyerPage() {
   const [template, setTemplate] = useState("hero");
@@ -21,12 +22,18 @@ export default function FlyerPage() {
   const images = usePropertyStore((s) => s.images);
 
   const flyerRef = useRef(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingPNG, setIsExportingPNG] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const isExporting = isExportingPNG || isExportingPDF;
 
   const hasData = useMemo(
     () => hasMinimumFlyerData({ formData, images }),
     [formData, images]
   );
+  const hasUnsupportedType = useMemo(() => {
+    const type = (formData.propertyType || "").trim();
+    return Boolean(type) && !SUPPORTED_RESIDENTIAL_TYPES.has(type);
+  }, [formData.propertyType]);
 
   const safeFileBase = useMemo(
     () => makeSafeFilename(formData.propertyTitle, "flyer"),
@@ -36,35 +43,58 @@ export default function FlyerPage() {
   const exportPNG = async () => {
     if (!flyerRef.current) return;
     try {
-      setIsExporting(true);
+      setIsExportingPNG(true);
       await exportFlyerPNG(flyerRef.current, { filename: safeFileBase });
     } finally {
-      setIsExporting(false);
+      setIsExportingPNG(false);
     }
   };
 
   const exportPDF = async () => {
     if (!flyerRef.current) return;
     try {
-      setIsExporting(true);
+      setIsExportingPDF(true);
       await exportFlyerPDF(flyerRef.current, { filename: safeFileBase });
     } finally {
-      setIsExporting(false);
+      setIsExportingPDF(false);
     }
   };
 
   if (!hasData) {
     return (
-      <div className="rounded-xl bg-white p-6 ring-1 ring-gray-200">
-        <h1 className="mb-2 text-2xl font-semibold text-gray-900">
+      <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.8)]">
+        <h1 className="mb-2 text-2xl font-semibold text-[color:var(--ink-strong)]">
           Flyer Builder
         </h1>
-        <p className="mb-6 text-gray-600">
+        <p className="mb-6 text-[color:var(--ink-soft)]">
           No listing data yet. Start with General Info.
         </p>
         <Link
           href="/property/general"
-          className="inline-flex rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+          className="hover-lift inline-flex rounded-xl bg-[var(--brand)] px-4 py-2 font-medium text-white hover:bg-[var(--brand-strong)]"
+        >
+          Go to General Info
+        </Link>
+      </div>
+    );
+  }
+
+  if (hasUnsupportedType) {
+    return (
+      <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.8)]">
+        <h1 className="mb-2 text-2xl font-semibold text-[color:var(--ink-strong)]">
+          Residential Templates Only
+        </h1>
+        <p className="mb-3 text-[color:var(--ink-soft)]">
+          Current flyer templates are optimized for residential listings.
+        </p>
+        <p className="mb-6 text-sm text-[color:var(--ink-muted)]">
+          Please select <span className="font-semibold">House</span> or{" "}
+          <span className="font-semibold">Condo</span> in General Information.
+        </p>
+        <Link
+          href="/property/general"
+          className="hover-lift inline-flex rounded-xl bg-[var(--brand)] px-4 py-2 font-medium text-[#0b0f14] hover:bg-[var(--brand-strong)]"
         >
           Go to General Info
         </Link>
@@ -73,32 +103,32 @@ export default function FlyerPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-73px)]">
+    <div className="min-h-[calc(100vh-80px)]">
       <div>
         {/* Top controls bar */}
-        <div className="sticky top-0 z-20 rounded-lg bg-white/90 px-4 py-4 ring-1 ring-gray-200 backdrop-blur lg:static lg:rounded-xl">
+        <div className="sticky top-[76px] z-20 rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 px-4 py-4 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur lg:static">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Title + template */}
             <div className="min-w-0">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-6">
                 <div className="min-w-0">
-                  <h1 className="truncate text-xl font-semibold text-gray-900">
+                  <h1 className="truncate text-2xl font-semibold text-[color:var(--ink-strong)]">
                     Flyer Builder
                   </h1>
-                  <p className="text-sm text-gray-600">Portrait (1080×1350)</p>
+                  <p className="text-sm text-[color:var(--ink-muted)]">Portrait (1080×1350)</p>
                 </div>
 
-                <div className="flex gap-1 rounded-lg border border-gray-200 p-1">
+                <div className="flex gap-1 rounded-xl border border-[var(--card-border)] bg-white/85 p-1">
                   {TEMPLATES.map(({ key, label }) => (
                     <button
                       key={key}
                       type="button"
                       onClick={() => setTemplate(key)}
                       className={[
-                        "rounded-md px-3 py-1.5 text-sm transition",
+                        "hover-lift rounded-lg px-3 py-1.5 text-sm font-medium transition",
                         template === key
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-700 hover:bg-gray-50",
+                          ? "bg-[var(--brand)] text-[#0b0f14]"
+                          : "text-[#1a2230] hover:bg-[#eef2f8]",
                       ].join(" ")}
                     >
                       {label}
@@ -114,33 +144,26 @@ export default function FlyerPage() {
                 type="button"
                 onClick={exportPNG}
                 disabled={isExporting}
-                className="inline-flex w-full justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
+                className="hover-lift inline-flex w-full justify-center rounded-xl border border-[var(--card-border)] bg-white px-4 py-2 text-sm font-semibold text-[#1a2230] hover:bg-[#eef2f8] disabled:opacity-60 sm:w-auto"
               >
-                {isExporting ? "Exporting..." : "Export PNG"}
+                {isExportingPNG ? "Exporting..." : "Export PNG"}
               </button>
 
               <button
                 type="button"
                 onClick={exportPDF}
                 disabled={isExporting}
-                className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-60 sm:w-auto"
+                className="hover-lift inline-flex w-full justify-center rounded-xl border border-[var(--card-border)] bg-white px-4 py-2 text-sm font-semibold text-[#1a2230] hover:bg-[#eef2f8] disabled:opacity-60 sm:w-auto"
               >
-                {isExporting ? "Exporting..." : "Export PDF"}
+                {isExportingPDF ? "Exporting..." : "Export PDF"}
               </button>
-
-              <Link
-                href="/property/general"
-                className="inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 sm:w-auto"
-              >
-                Back to General Info
-              </Link>
             </div>
           </div>
         </div>
 
         {/* Flyer preview below */}
         <div className="mt-8 flex w-full justify-center overflow-auto">
-          <div className="w-full">
+          <div className="w-full rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/70 p-4 shadow-[0_16px_32px_-26px_rgba(15,23,42,0.7)] sm:p-6">
             <FlyerPreview
               ref={flyerRef}
               formData={formData}
@@ -150,7 +173,7 @@ export default function FlyerPage() {
           </div>
         </div>
 
-        <div className="mt-3 text-center text-xs text-gray-500">
+        <div className="mt-3 text-center text-xs text-[color:var(--ink-muted)]">
           Preview scales to your screen. Exports remain 1080×1350.
         </div>
       </div>
