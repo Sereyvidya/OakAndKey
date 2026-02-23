@@ -468,7 +468,7 @@ export default function PropertyForm({
                   name: "propertyTitle",
                   value: formData.propertyTitle,
                   onChange: onInputChange,
-                  placeholder: "Spacious 4-bedroom family home",
+                  placeholder: "Modern 4-Bedroom Family Home",
                   "aria-invalid": Boolean(
                     isTitleTooLong || (hasSubmitted && errors.propertyTitle)
                   ),
@@ -501,7 +501,7 @@ export default function PropertyForm({
                   name: "address",
                   value: formData.address,
                   onChange: onInputChange,
-                  placeholder: "Full address",
+                  placeholder: "2716 Maple Grove Dr, Austin, TX",
                   "aria-invalid": Boolean(hasSubmitted && errors.address),
                 }}
               />
@@ -539,7 +539,7 @@ export default function PropertyForm({
                         ? "border-red-500/80 ring-1 ring-red-500/30"
                         : "border-[color:var(--field-border)]",
                     ].join(" ")}
-                    placeholder="0"
+                    placeholder="485000"
                     aria-invalid={Boolean(hasSubmitted && errors.price)}
                   />
                 </div>
@@ -646,7 +646,7 @@ export default function PropertyForm({
                     value: formData.bedrooms,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: "0",
+                    placeholder: "4",
                     min: "0",
                     step: "1",
                   }}
@@ -673,7 +673,7 @@ export default function PropertyForm({
                     value: formData.bathrooms,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: "0",
+                    placeholder: "3",
                     min: "0",
                     step: "1",
                   }}
@@ -702,7 +702,7 @@ export default function PropertyForm({
                     value: formData.size,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: "0",
+                    placeholder: "245",
                     min: "0",
                     step: "1",
                   }}
@@ -739,7 +739,7 @@ export default function PropertyForm({
                   maxLength={400}
                   className="form-input-focus form-field w-full rounded-md border border-[color:var(--field-border)] px-4 py-2 pr-14 pb-12"
                   rows={4}
-                  placeholder="Highlight layout, neighborhood, renovation updates, and what makes this home special."
+                  placeholder="Beautifully updated 4-bedroom, 3-bath home in North Austin with an open-concept living area, a large island kitchen, and abundant natural light. The primary suite includes a walk-in closet and spa-style bath, while the fenced backyard and covered patio are perfect for entertaining. Minutes from top schools, parks, and major commuter routes."
                 />
                 <div className="absolute right-2 bottom-4">
                   <GeminiButton
@@ -890,7 +890,7 @@ export default function PropertyForm({
                     name: "agentPhone",
                     value: formData.agentPhone,
                     onChange: onInputChange,
-                    placeholder: "(555) 123-4567",
+                    placeholder: "(512) 555-0147",
                   }}
                 />
 
@@ -917,7 +917,7 @@ export default function PropertyForm({
                     name: "agentEmail",
                     value: formData.agentEmail,
                     onChange: onInputChange,
-                    placeholder: "agent@example.com",
+                    placeholder: "john.carter@gmail.com",
                   }}
                 />
 

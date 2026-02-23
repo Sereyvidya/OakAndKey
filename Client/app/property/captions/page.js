@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import { generateCaptionVariants } from "@/app/lib/captions/generate";
@@ -9,6 +9,7 @@ export default function CaptionsPage() {
   const formData = usePropertyStore((s) => s.formData);
   const images = usePropertyStore((s) => s.images);
   const [copied, setCopied] = useState("");
+  const [localVariants, setLocalVariants] = useState(null);
   const [aiVariants, setAiVariants] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiError, setAiError] = useState("");
@@ -21,12 +22,7 @@ export default function CaptionsPage() {
       images?.length > 0
   );
 
-  const localVariants = useMemo(
-    () => generateCaptionVariants(formData, images),
-    [formData, images]
-  );
-
-  const variants = mode === "ai" && aiVariants ? aiVariants : localVariants;
+  const variants = mode === "ai" ? aiVariants : localVariants;
 
   useEffect(() => {
     setSelectedImageIndexes((prev) => {
@@ -37,9 +33,9 @@ export default function CaptionsPage() {
   }, [images]);
 
   useEffect(() => {
+    setLocalVariants(null);
     setAiVariants(null);
     setAiError("");
-    setMode("local");
   }, [formData, images]);
 
   const copyVariant = async (variant) => {
@@ -90,6 +86,19 @@ export default function CaptionsPage() {
     }
   };
 
+  const generateLocal = () => {
+    setLocalVariants(generateCaptionVariants(formData, images).slice(0, 3));
+    setAiError("");
+  };
+
+  const handleGenerate = () => {
+    if (mode === "ai") {
+      generateWithAI();
+      return;
+    }
+    generateLocal();
+  };
+
   const toggleImageSelection = (idx) => {
     setSelectedImageIndexes((prev) => {
       if (prev.includes(idx)) return prev.filter((i) => i !== idx);
@@ -124,7 +133,9 @@ export default function CaptionsPage() {
           Social Captions
         </h1>
         <p className="mt-2 text-[color:var(--ink-soft)]">
-          Generate 3 versions from your listing details and uploaded photos.
+          {mode === "ai"
+            ? "Use Gemini to generate 3 caption versions from your listing details and selected photos."
+            : "Use the local generator to create 3 caption versions from your listing details."}
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <button
@@ -150,6 +161,14 @@ export default function CaptionsPage() {
             ].join(" ")}
           >
             Use Gemini
+          </button>
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={isGenerating || (mode === "ai" && selectedImageIndexes.length === 0)}
+            className="hover-lift ml-auto rounded-xl bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-[#0b0f14] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isGenerating ? "Generating..." : variants ? "Regenerate" : "Generate"}
           </button>
         </div>
         {mode === "ai" && images.length > 0 ? (
@@ -187,57 +206,47 @@ export default function CaptionsPage() {
             <p className="mt-1 text-xs text-[color:var(--ink-muted)]">
               Selected: {selectedImageIndexes.length}/3
             </p>
-            <div className="mt-3 flex items-center justify-end">
-              <button
-                type="button"
-                onClick={generateWithAI}
-                disabled={isGenerating || selectedImageIndexes.length === 0}
-                className="hover-lift rounded-xl bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-[#0b0f14] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isGenerating
-                  ? "Generating..."
-                  : aiVariants
-                    ? "Regenerate"
-                    : "Generate"}
-              </button>
-            </div>
           </div>
         ) : null}
         {mode === "ai" && aiError ? (
           <p className="mt-2 text-xs text-red-400">{aiError}</p>
-        ) : mode === "ai" ? (
-          <p className="mt-2 text-xs text-[color:var(--ink-muted)]">
-            Gemini uses your listing details and selected photos to shape caption tone and hashtags.
-          </p>
         ) : null}
       </section>
 
-      <div className="space-y-6">
-        {variants.map((variant) => (
-          <section key={variant.name} className="form-section pt-5">
-            <div className="flex items-start justify-between gap-4">
-              <h2 className="text-lg font-semibold text-[color:var(--ink-strong)]">
-                {variant.name}
-              </h2>
-              <button
-                type="button"
-                onClick={() => copyVariant(variant)}
-                className="hover-lift rounded-lg border border-[var(--field-border)] bg-[color:var(--field-bg)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink-base)] hover:bg-[color:var(--surface)]"
-              >
-                {copied === variant.name ? "Copied" : "Copy"}
-              </button>
-            </div>
+      {variants?.length ? (
+        <div className="space-y-6">
+          {variants.map((variant) => (
+            <section key={variant.name} className="form-section pt-5">
+              <div className="flex items-start justify-between gap-4">
+                <h2 className="text-lg font-semibold text-[color:var(--ink-strong)]">
+                  {variant.name}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => copyVariant(variant)}
+                  className="hover-lift rounded-lg border border-[var(--field-border)] bg-[color:var(--field-bg)] px-3 py-1.5 text-xs font-semibold text-[color:var(--ink-base)] hover:bg-[color:var(--surface)]"
+                >
+                  {copied === variant.name ? "Copied" : "Copy"}
+                </button>
+              </div>
 
-            <pre className="mt-3 whitespace-pre-wrap font-sans text-sm leading-relaxed text-[color:var(--ink-base)]">
-              {variant.caption}
-            </pre>
+              <pre className="mt-3 whitespace-pre-wrap font-sans text-sm leading-relaxed text-[color:var(--ink-base)]">
+                {variant.caption}
+              </pre>
 
-            <p className="mt-4 text-sm text-[color:var(--ink-soft)]">
-              {variant.hashtags.join(" ")}
-            </p>
-          </section>
-        ))}
-      </div>
+              <p className="mt-4 text-sm text-[color:var(--ink-soft)]">
+                {variant.hashtags.join(" ")}
+              </p>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <section className="form-section pt-5">
+          <p className="text-sm text-[color:var(--ink-muted)]">
+            Choose a mode, then click Generate to create captions.
+          </p>
+        </section>
+      )}
     </div>
   );
 }

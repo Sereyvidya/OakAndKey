@@ -62,16 +62,16 @@ export default function FlyerPage() {
 
   if (!hasData) {
     return (
-      <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.8)]">
+      <div className="mx-auto w-full max-w-3xl rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.8)]">
         <h1 className="mb-2 text-2xl font-semibold text-[color:var(--ink-strong)]">
           Flyer Builder
         </h1>
-        <p className="mb-6 text-[color:var(--ink-soft)]">
+        <p className="mb-6 text-[color:var(--ink-base)]">
           No listing data yet. Start with General Info.
         </p>
         <Link
           href="/property/general"
-          className="hover-lift inline-flex rounded-xl bg-[var(--brand)] px-4 py-2 font-medium text-white hover:bg-[var(--brand-strong)]"
+          className="hover-lift inline-flex rounded-xl bg-[var(--brand)] px-4 py-2 font-medium text-[#0b0f14] hover:bg-[var(--brand-strong)]"
         >
           Go to General Info
         </Link>
@@ -81,11 +81,11 @@ export default function FlyerPage() {
 
   if (hasUnsupportedType) {
     return (
-      <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.8)]">
+      <div className="mx-auto w-full max-w-3xl rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_32px_-28px_rgba(15,23,42,0.8)]">
         <h1 className="mb-2 text-2xl font-semibold text-[color:var(--ink-strong)]">
           Residential Templates Only
         </h1>
-        <p className="mb-3 text-[color:var(--ink-soft)]">
+        <p className="mb-3 text-[color:var(--ink-base)]">
           Current flyer templates are optimized for residential listings.
         </p>
         <p className="mb-6 text-sm text-[color:var(--ink-muted)]">
@@ -118,7 +118,7 @@ export default function FlyerPage() {
                   <p className="text-sm text-[color:var(--ink-muted)]">Portrait (1080×1350)</p>
                 </div>
 
-                <div className="flex gap-1 rounded-xl border border-[var(--card-border)] bg-white/85 p-1">
+                <div className="flex gap-1 rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)] p-1">
                   {TEMPLATES.map(({ key, label }) => (
                     <button
                       key={key}
@@ -128,7 +128,7 @@ export default function FlyerPage() {
                         "hover-lift rounded-lg px-3 py-1.5 text-sm font-medium transition",
                         template === key
                           ? "bg-[var(--brand)] text-[#0b0f14]"
-                          : "text-[#1a2230] hover:bg-[#eef2f8]",
+                          : "text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
                       ].join(" ")}
                     >
                       {label}

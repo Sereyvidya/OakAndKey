@@ -63,7 +63,7 @@ const FlyerPreview = forwardRef(function FlyerPreview(
           <div
             key={template}
             ref={exportRef}
-            className="flyer-stage-enter h-full w-full overflow-hidden rounded-2xl border border-gray-200 bg-white"
+            className="h-full w-full overflow-hidden rounded-2xl border border-gray-200 bg-white"
           >
             <div className="relative h-full w-full">
               <Template formData={formData} images={images} />
