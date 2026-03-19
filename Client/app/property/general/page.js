@@ -29,6 +29,10 @@ export default function GeneralInfoPage() {
     setFormData({ propertyType: value });
   };
 
+  const handleAutofill = (values) => {
+    setFormData(values);
+  };
+
   const fileToBase64 = (file) =>
     new Promise((resolve) => {
       const reader = new FileReader();
@@ -43,8 +47,15 @@ export default function GeneralInfoPage() {
     const img = await fileToBase64(file);
     setFormData({ agentPhoto: img });
   };
+  const handleCompanyLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const img = await fileToBase64(file);
+    setFormData({ agentCompanyLogo: img });
+  };
 
   const clearAgentPhoto = () => setFormData({ agentPhoto: null });
+  const clearCompanyLogo = () => setFormData({ agentCompanyLogo: null });
   const clearImages = () => setImages([]);
 
   const handleImageChange = (e) => {
@@ -69,8 +80,11 @@ export default function GeneralInfoPage() {
       images={images}
       onInputChange={handleInputChange}
       onPropertyTypeSelect={handlePropertyTypeSelect}
+      onAutofill={handleAutofill}
       onAgentPhotoChange={handleAgentPhotoChange}
+      onCompanyLogoChange={handleCompanyLogoChange}
       onClearAgentPhoto={clearAgentPhoto}
+      onClearCompanyLogo={clearCompanyLogo}
       onImageChange={handleImageChange}
       onClearImages={clearImages}
       onRemoveImage={removeImage}

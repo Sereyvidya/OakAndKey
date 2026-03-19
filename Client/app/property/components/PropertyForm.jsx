@@ -3,14 +3,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { propertyTypes } from "../constants/propertyTypes";
 import {
+  Tag,
   User,
   Phone,
   Mail,
   Home,
+  Globe,
   MapPin,
+  Map,
   BedDouble,
   Bath,
   Ruler,
+  Building,
   Building2,
   Image as ImageIcon,
   Images,
@@ -19,6 +23,103 @@ import {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUPPORTED_RESIDENTIAL_TYPES = new Set(["house", "condo"]);
 const TITLE_MAX_CHARS = 35;
+const US_STATE_CODES = [
+  "AL",
+  "AK",
+  "AZ",
+  "AR",
+  "CA",
+  "CO",
+  "CT",
+  "DE",
+  "FL",
+  "GA",
+  "HI",
+  "ID",
+  "IL",
+  "IN",
+  "IA",
+  "KS",
+  "KY",
+  "LA",
+  "ME",
+  "MD",
+  "MA",
+  "MI",
+  "MN",
+  "MS",
+  "MO",
+  "MT",
+  "NE",
+  "NV",
+  "NH",
+  "NJ",
+  "NM",
+  "NY",
+  "NC",
+  "ND",
+  "OH",
+  "OK",
+  "OR",
+  "PA",
+  "RI",
+  "SC",
+  "SD",
+  "TN",
+  "TX",
+  "UT",
+  "VT",
+  "VA",
+  "WA",
+  "WV",
+  "WI",
+  "WY",
+];
+const SAMPLE_AUTOFILL = {
+  propertyTitle: "Modern 4-Bedroom Family Home",
+  address: "2716 Maple Grove Dr, Austin, TX",
+  addressStreet: "2716 Maple Grove Dr",
+  addressCity: "Austin",
+  addressState: "TX",
+  price: "485000",
+  bedrooms: "4",
+  bathrooms: "3",
+  size: "245",
+  description:
+    "Beautifully updated 4-bedroom, 3-bath home in North Austin with an open-concept living area, a large island kitchen, and abundant natural light. The primary suite includes a walk-in closet and spa-style bath, while the fenced backyard and covered patio are perfect for entertaining. Minutes from top schools, parks, and major commuter routes.",
+  agentName: "John Carter",
+  agentCompanyName: "Oak & Key",
+  agentSocialLink: "oakandkey.com",
+  agentPhone: "(512) 555-0147",
+  agentEmail: "John.Carter@gmail.com",
+};
+
+function splitAddressParts(value = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return { street: "", city: "", state: "" };
+
+  const parts = raw
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length >= 3) {
+    const state = parts.pop() || "";
+    const city = parts.pop() || "";
+    const street = parts.join(", ");
+    return { street, city, state };
+  }
+  if (parts.length === 2) {
+    return { street: parts[0], city: parts[1], state: "" };
+  }
+  return { street: parts[0] || "", city: "", state: "" };
+}
+
+function composeAddress(street = "", city = "", state = "") {
+  return [street, city, state]
+    .map((v) => String(v).trim())
+    .filter(Boolean)
+    .join(", ");
+}
 
 function normalizePhone(value = "") {
   return value.replace(/[^\d+]/g, "");
@@ -35,9 +136,23 @@ function validateForm(formData, images = []) {
   const errors = {};
 
   const title = (formData.propertyTitle || "").trim();
-  const address = (formData.address || "").trim();
+  const fallbackAddressParts = splitAddressParts(formData.address || "");
+  const street = (
+    formData.addressStreet ??
+    fallbackAddressParts.street ??
+    ""
+  ).trim();
+  const city = (formData.addressCity ?? fallbackAddressParts.city ?? "").trim();
+  const state = (
+    formData.addressState ??
+    fallbackAddressParts.state ??
+    ""
+  ).trim();
+  const address = composeAddress(street, city, state);
   const type = (formData.propertyType || "").trim();
   const agentName = (formData.agentName || "").trim();
+  const companyName = (formData.agentCompanyName || "").trim();
+  const socialLink = (formData.agentSocialLink || "").trim();
   const phone = (formData.agentPhone || "").trim();
   const email = (formData.agentEmail || "").trim();
   const description = (formData.description || "").trim();
@@ -49,9 +164,11 @@ function validateForm(formData, images = []) {
   else if (title.length > TITLE_MAX_CHARS)
     errors.propertyTitle = `Title must be ${TITLE_MAX_CHARS} characters or less for flyers.`;
 
-  if (!address) errors.address = "Address is required.";
-  else if (address.length < 6)
+  if (!street || !city || !state) {
+    errors.address = "Street, city, and state are required.";
+  } else if (address.length < 6) {
     errors.address = "Address should be more specific.";
+  }
 
   // Price
   const priceRaw = formData.price;
@@ -75,7 +192,8 @@ function validateForm(formData, images = []) {
   const size = formData.size === "" ? null : Number(formData.size);
 
   if (beds === null) errors.bedrooms = "Bedrooms are required.";
-  else if (Number.isNaN(beds) || beds < 0) errors.bedrooms = "Must be 0 or more.";
+  else if (Number.isNaN(beds) || beds < 0)
+    errors.bedrooms = "Must be 0 or more.";
   if (baths === null) errors.bathrooms = "Bathrooms are required.";
   else if (Number.isNaN(baths) || baths < 0)
     errors.bathrooms = "Must be 0 or more.";
@@ -87,12 +205,14 @@ function validateForm(formData, images = []) {
     errors.description = "Description should be at least 20 characters.";
 
   // Property images
-  if (!images || images.length < 1) {
-    errors.images = "Please upload at least 1 property photo.";
+  if (!images || images.length < 4) {
+    errors.images = "Please upload at least 4 property photos.";
   }
 
   // Agent required
   if (!agentName) errors.agentName = "Agent name is required.";
+  if (!companyName) errors.agentCompanyName = "Company name is required.";
+  if (!socialLink) errors.agentSocialLink = "Social or website link is required.";
 
   // Phone & Email are required
   if (!phone) {
@@ -107,6 +227,10 @@ function validateForm(formData, images = []) {
     errors.agentEmail = "Please enter a valid email address.";
   }
 
+  if (!formData.agentCompanyLogo?.preview) {
+    errors.agentCompanyLogo = "Company logo is required.";
+  }
+
   if (!formData.agentPhoto?.preview) {
     errors.agentPhoto = "Agent photo is required.";
   }
@@ -116,7 +240,7 @@ function validateForm(formData, images = []) {
 
 function ErrorText({ children }) {
   if (!children) return null;
-  return <p className="mt-1 text-sm text-red-400">{children}</p>;
+  return <p className="form-error-text mt-1 text-sm">{children}</p>;
 }
 
 function InputWithIcon({ icon: Icon, inputProps, hasError }) {
@@ -130,9 +254,7 @@ function InputWithIcon({ icon: Icon, inputProps, hasError }) {
         {...inputProps}
         className={[
           "form-input-focus form-field h-10 w-full rounded-md border py-2 pr-4 pl-10",
-          hasError
-            ? "border-red-500/80 ring-1 ring-red-500/30"
-            : "border-[color:var(--field-border)]",
+          hasError ? "field-error" : "border-[color:var(--field-border)]",
         ].join(" ")}
       />
     </div>
@@ -148,7 +270,7 @@ function FileInput({ icon: Icon, label, onChange, onClear, accept, file }) {
         {label}
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <label
             htmlFor={inputId}
@@ -176,7 +298,7 @@ function FileInput({ icon: Icon, label, onChange, onClear, accept, file }) {
         <button
           type="button"
           onClick={onClear}
-          className="mt-3 text-sm text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)]"
+          className="text-sm text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)]"
         >
           Clear
         </button>
@@ -185,7 +307,7 @@ function FileInput({ icon: Icon, label, onChange, onClear, accept, file }) {
   );
 }
 
-function MultiFileInput({ icon: Icon, label, onChange, onClear, files }) {
+function MultiFileInput({ icon: Icon, label, onChange, onClear, files, hasError }) {
   const inputId = `${label.replace(/\s+/g, "-").toLowerCase()}-input`;
 
   return (
@@ -198,7 +320,10 @@ function MultiFileInput({ icon: Icon, label, onChange, onClear, files }) {
         <div className="flex items-center gap-3">
           <label
             htmlFor={inputId}
-            className="relative inline-flex cursor-pointer items-center rounded-md border border-[color:var(--field-border)] bg-[color:var(--field-bg)] px-4 py-2 pl-10 text-sm font-medium text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]"
+            className={[
+              "relative inline-flex cursor-pointer items-center rounded-md border bg-[color:var(--field-bg)] px-4 py-2 pl-10 text-sm font-medium text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
+              hasError ? "field-error" : "border-[color:var(--field-border)]",
+            ].join(" ")}
           >
             <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
               <Icon size={16} />
@@ -270,9 +395,12 @@ export default function PropertyForm({
   images,
   onInputChange,
   onImageChange,
+  onAutofill,
   onClearImages,
   onAgentPhotoChange,
+  onCompanyLogoChange,
   onClearAgentPhoto,
+  onClearCompanyLogo,
   onRemoveImage,
   onSubmit,
   onPropertyTypeSelect,
@@ -295,8 +423,36 @@ export default function PropertyForm({
     );
     return current || null; // don't default to first option
   }, [formData.propertyType]);
+  const PropertyTypeIcon =
+    formData.propertyType === "house"
+      ? Home
+      : formData.propertyType === "condo"
+        ? Building
+        : Building;
   const currentTitleLength = (formData.propertyTitle || "").length;
   const isTitleTooLong = currentTitleLength > TITLE_MAX_CHARS;
+  const parsedAddress = useMemo(
+    () => splitAddressParts(formData.address),
+    [formData.address]
+  );
+  const addressStreet = formData.addressStreet ?? parsedAddress.street;
+  const addressCity = formData.addressCity ?? parsedAddress.city;
+  const addressState = formData.addressState ?? parsedAddress.state;
+
+  const updateAddressPart = (fieldName, value) => {
+    const nextStreet =
+      fieldName === "addressStreet" ? value : addressStreet || "";
+    const nextCity = fieldName === "addressCity" ? value : addressCity || "";
+    const nextState = fieldName === "addressState" ? value : addressState || "";
+
+    onInputChange({ target: { name: fieldName, value } });
+    onInputChange({
+      target: {
+        name: "address",
+        value: composeAddress(nextStreet, nextCity, nextState),
+      },
+    });
+  };
 
   const validateAndSetWith = (nextFormData, nextImages) => {
     const nextErrors = validateForm(nextFormData, nextImages);
@@ -325,8 +481,11 @@ export default function PropertyForm({
       "size",
       "description",
       "images",
+      "agentCompanyLogo",
       "agentPhoto",
       "agentName",
+      "agentCompanyName",
+      "agentSocialLink",
       "agentPhone",
       "agentEmail",
     ];
@@ -428,15 +587,22 @@ export default function PropertyForm({
 
   return (
     <div className="interactive-form rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/96 p-6 shadow-[0_16px_34px_-28px_rgba(15,23,42,0.8)]">
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold text-[color:var(--ink-strong)]">
           General Information
         </h1>
+        <button
+          type="button"
+          onClick={() => onAutofill?.(SAMPLE_AUTOFILL)}
+          className="hover-lift rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)] px-4 py-2 text-sm font-semibold text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]"
+        >
+          Autofill
+        </button>
       </div>
 
       {/* Error summary */}
       {showErrorSummary && (
-        <div className="mb-6 rounded-lg border border-red-500/40 bg-red-950/35 p-4 text-sm text-red-300">
+        <div className="form-error-summary mb-6 rounded-lg border p-4 text-sm font-medium">
           Please fix the highlighted fields below.
         </div>
       )}
@@ -459,8 +625,10 @@ export default function PropertyForm({
                 Title
               </label>
               <InputWithIcon
-                icon={Home}
-                hasError={isTitleTooLong || (hasSubmitted && errors.propertyTitle)}
+                icon={Tag}
+                hasError={
+                  isTitleTooLong || (hasSubmitted && errors.propertyTitle)
+                }
                 inputProps={{
                   ref: (n) => (fieldRefs.current.propertyTitle = n),
                   type: "text",
@@ -468,7 +636,7 @@ export default function PropertyForm({
                   name: "propertyTitle",
                   value: formData.propertyTitle,
                   onChange: onInputChange,
-                  placeholder: "Modern 4-Bedroom Family Home",
+                  placeholder: SAMPLE_AUTOFILL.propertyTitle,
                   "aria-invalid": Boolean(
                     isTitleTooLong || (hasSubmitted && errors.propertyTitle)
                   ),
@@ -491,20 +659,89 @@ export default function PropertyForm({
               >
                 Address
               </label>
-              <InputWithIcon
-                icon={MapPin}
-                hasError={hasSubmitted && errors.address}
-                inputProps={{
-                  ref: (n) => (fieldRefs.current.address = n),
-                  type: "text",
-                  id: "address",
-                  name: "address",
-                  value: formData.address,
-                  onChange: onInputChange,
-                  placeholder: "2716 Maple Grove Dr, Austin, TX",
-                  "aria-invalid": Boolean(hasSubmitted && errors.address),
-                }}
-              />
+              <div
+                className={[
+                  "address-composite form-field flex h-10 items-center rounded-md border",
+                  hasSubmitted && errors.address
+                    ? "field-error"
+                    : "border-[color:var(--field-border)]",
+                ].join(" ")}
+              >
+                <div className="relative min-w-0 flex-1">
+                  <span className="pointer-events-none absolute top-1/2 left-[10px] -translate-y-1/2 text-[color:var(--ink-muted)]">
+                    <MapPin size={16} />
+                  </span>
+                  <input
+                    ref={(n) => (fieldRefs.current.address = n)}
+                    type="text"
+                    id="addressStreet"
+                    name="addressStreet"
+                    value={addressStreet}
+                    onChange={(e) =>
+                      updateAddressPart("addressStreet", e.target.value)
+                    }
+                    className="h-8 w-full bg-transparent pr-2 pl-10 text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-muted)] focus:outline-none"
+                    placeholder={SAMPLE_AUTOFILL.addressStreet}
+                    aria-label="Street address"
+                    aria-invalid={Boolean(hasSubmitted && errors.address)}
+                  />
+                </div>
+
+                <span className="pl-1 text-[color:var(--ink-muted)]">|</span>
+
+                <div className="relative min-w-0 flex-1">
+                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
+                    <Building2 size={16} />
+                  </span>
+                  <input
+                    type="text"
+                    id="addressCity"
+                    name="addressCity"
+                    value={addressCity}
+                    onChange={(e) =>
+                      updateAddressPart("addressCity", e.target.value)
+                    }
+                    className="h-8 w-full bg-transparent pr-2 pl-10 text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-muted)] focus:outline-none"
+                    placeholder={SAMPLE_AUTOFILL.addressCity}
+                    aria-label="City"
+                    aria-invalid={Boolean(hasSubmitted && errors.address)}
+                  />
+                </div>
+
+                <span className="pl-1 text-[color:var(--ink-muted)]">|</span>
+
+                <div className="relative min-w-0 flex-1">
+                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
+                    <Map size={16} />
+                  </span>
+                  <select
+                    id="addressState"
+                    name="addressState"
+                    value={addressState}
+                    onChange={(e) =>
+                      updateAddressPart("addressState", e.target.value)
+                    }
+                    className={[
+                      "h-8 w-full appearance-none bg-transparent pr-7 pl-10 focus:outline-none",
+                      addressState
+                        ? "text-[color:var(--ink-strong)]"
+                        : "text-[color:var(--ink-muted)]",
+                    ].join(" ")}
+                    aria-label="State"
+                    aria-invalid={Boolean(hasSubmitted && errors.address)}
+                  >
+                    <option value="">State</option>
+                    {US_STATE_CODES.map((code) => (
+                      <option key={code} value={code} className="text-black">
+                        {code}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--ink-muted)]">
+                    ▾
+                  </span>
+                </div>
+              </div>
 
               <ErrorText>{hasSubmitted ? errors.address : ""}</ErrorText>
             </div>
@@ -536,10 +773,10 @@ export default function PropertyForm({
                     className={[
                       "form-input-focus form-field h-10 w-full rounded-md border py-2 pr-4 pl-10 text-left tabular-nums",
                       hasSubmitted && errors.price
-                        ? "border-red-500/80 ring-1 ring-red-500/30"
+                        ? "field-error"
                         : "border-[color:var(--field-border)]",
                     ].join(" ")}
-                    placeholder="485000"
+                    placeholder={SAMPLE_AUTOFILL.price}
                     aria-invalid={Boolean(hasSubmitted && errors.price)}
                   />
                 </div>
@@ -567,14 +804,14 @@ export default function PropertyForm({
                     className={[
                       "form-input-focus form-field relative flex h-10 w-full items-center justify-between rounded-md border py-2 pr-4 pl-10 text-left",
                       hasSubmitted && errors.propertyType
-                        ? "border-red-500/80 ring-1 ring-red-500/30"
+                        ? "field-error"
                         : "border-[color:var(--field-border)]",
                     ].join(" ")}
                     aria-haspopup="listbox"
                     aria-expanded={isPropertyTypeOpen}
                   >
                     <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
-                      <Building2 size={16} />
+                      <PropertyTypeIcon size={16} />
                     </span>
 
                     <span
@@ -646,7 +883,7 @@ export default function PropertyForm({
                     value: formData.bedrooms,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: "4",
+                    placeholder: SAMPLE_AUTOFILL.bedrooms,
                     min: "0",
                     step: "1",
                   }}
@@ -673,15 +910,13 @@ export default function PropertyForm({
                     value: formData.bathrooms,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: "3",
+                    placeholder: SAMPLE_AUTOFILL.bathrooms,
                     min: "0",
                     step: "1",
                   }}
                 />
 
-                <ErrorText>
-                  {hasSubmitted ? errors.bathrooms : ""}
-                </ErrorText>
+                <ErrorText>{hasSubmitted ? errors.bathrooms : ""}</ErrorText>
               </div>
 
               <div>
@@ -702,7 +937,7 @@ export default function PropertyForm({
                     value: formData.size,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: "245",
+                    placeholder: SAMPLE_AUTOFILL.size,
                     min: "0",
                     step: "1",
                   }}
@@ -739,7 +974,7 @@ export default function PropertyForm({
                   maxLength={400}
                   className="form-input-focus form-field w-full rounded-md border border-[color:var(--field-border)] px-4 py-2 pr-14 pb-12"
                   rows={4}
-                  placeholder="Beautifully updated 4-bedroom, 3-bath home in North Austin with an open-concept living area, a large island kitchen, and abundant natural light. The primary suite includes a walk-in closet and spa-style bath, while the fenced backyard and covered patio are perfect for entertaining. Minutes from top schools, parks, and major commuter routes."
+                  placeholder={SAMPLE_AUTOFILL.description}
                 />
                 <div className="absolute right-2 bottom-4">
                   <GeminiButton
@@ -751,9 +986,9 @@ export default function PropertyForm({
               </div>
               <p
                 className={[
-                  "mt-1 flex items-center justify-between text-xs gap-4",
+                  "mt-1 flex items-center justify-between gap-4 text-xs",
                   formData.description.length === 400
-                    ? "text-red-600"
+                    ? "form-error-text"
                     : formData.description.length >= 350
                       ? "text-amber-600"
                       : "text-[color:var(--ink-muted)]",
@@ -773,23 +1008,19 @@ export default function PropertyForm({
               </p>
               <ErrorText>{hasSubmitted ? errors.description : ""}</ErrorText>
               {rewordError ? (
-                <p className="mt-1 text-xs text-red-400">{rewordError}</p>
+                <p className="form-error-text mt-1 text-xs">{rewordError}</p>
               ) : null}
             </div>
 
             <div
               ref={(n) => (fieldRefs.current.images = n)}
-              className={[
-                "rounded-lg py-3",
-                hasSubmitted && errors.images
-                  ? "border border-red-500/60 bg-red-950/20"
-                  : "border border-transparent",
-              ].join(" ")}
+              className="rounded-lg py-3"
             >
               <MultiFileInput
                 icon={Images}
                 label="Property Images"
                 files={images}
+                hasError={Boolean(hasSubmitted && errors.images)}
                 onChange={(e) => {
                   onImageChange(e);
 
@@ -863,12 +1094,68 @@ export default function PropertyForm({
                   name: "agentName",
                   value: formData.agentName,
                   onChange: onInputChange,
-                  placeholder: "John Carter",
+                  placeholder: SAMPLE_AUTOFILL.agentName,
                   "aria-invalid": Boolean(hasSubmitted && errors.agentName),
                 }}
               />
 
               <ErrorText>{hasSubmitted ? errors.agentName : ""}</ErrorText>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="agentCompanyName"
+                  className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
+                >
+                  Company Name
+                </label>
+                <InputWithIcon
+                  icon={Building2}
+                  hasError={hasSubmitted && errors.agentCompanyName}
+                  inputProps={{
+                    type: "text",
+                    id: "agentCompanyName",
+                    name: "agentCompanyName",
+                    value: formData.agentCompanyName || "",
+                    onChange: onInputChange,
+                    placeholder: SAMPLE_AUTOFILL.agentCompanyName,
+                    "aria-invalid": Boolean(
+                      hasSubmitted && errors.agentCompanyName
+                    ),
+                  }}
+                />
+                <ErrorText>
+                  {hasSubmitted ? errors.agentCompanyName : ""}
+                </ErrorText>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="agentSocialLink"
+                  className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
+                >
+                  Social / Website
+                </label>
+                <InputWithIcon
+                  icon={Globe}
+                  hasError={hasSubmitted && errors.agentSocialLink}
+                  inputProps={{
+                    type: "text",
+                    id: "agentSocialLink",
+                    name: "agentSocialLink",
+                    value: formData.agentSocialLink || "",
+                    onChange: onInputChange,
+                    placeholder: SAMPLE_AUTOFILL.agentSocialLink,
+                    "aria-invalid": Boolean(
+                      hasSubmitted && errors.agentSocialLink
+                    ),
+                  }}
+                />
+                <ErrorText>
+                  {hasSubmitted ? errors.agentSocialLink : ""}
+                </ErrorText>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -890,13 +1177,11 @@ export default function PropertyForm({
                     name: "agentPhone",
                     value: formData.agentPhone,
                     onChange: onInputChange,
-                    placeholder: "(512) 555-0147",
+                    placeholder: SAMPLE_AUTOFILL.agentPhone,
                   }}
                 />
 
-                <ErrorText>
-                  {hasSubmitted ? errors.agentPhone : ""}
-                </ErrorText>
+                <ErrorText>{hasSubmitted ? errors.agentPhone : ""}</ErrorText>
               </div>
 
               <div>
@@ -917,34 +1202,50 @@ export default function PropertyForm({
                     name: "agentEmail",
                     value: formData.agentEmail,
                     onChange: onInputChange,
-                    placeholder: "john.carter@gmail.com",
+                    placeholder: SAMPLE_AUTOFILL.agentEmail,
                   }}
                 />
 
-                <ErrorText>
-                  {hasSubmitted ? errors.agentEmail : ""}
-                </ErrorText>
+                <ErrorText>{hasSubmitted ? errors.agentEmail : ""}</ErrorText>
               </div>
-
             </div>
 
             {/* Media: agent photo */}
-            <div className="grid grid-cols-1">
-              <FileInput
-                icon={ImageIcon}
-                label="Agent Photo"
-                accept="image/*"
-                file={formData.agentPhoto}
-                onChange={(e) => {
-                  onAgentPhotoChange(e);
-                  if (hasSubmitted) validateAndSet();
-                }}
-                onClear={() => {
-                  onClearAgentPhoto();
-                  if (hasSubmitted) validateAndSet();
-                }}
-              />
-              <ErrorText>{hasSubmitted ? errors.agentPhoto : ""}</ErrorText>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <FileInput
+                  icon={ImageIcon}
+                  label="Company Logo"
+                  accept="image/*"
+                  file={formData.agentCompanyLogo}
+                  onChange={(e) => {
+                    onCompanyLogoChange?.(e);
+                    if (hasSubmitted) validateAndSet();
+                  }}
+                  onClear={() => {
+                    onClearCompanyLogo?.();
+                    if (hasSubmitted) validateAndSet();
+                  }}
+                />
+                <ErrorText>{hasSubmitted ? errors.agentCompanyLogo : ""}</ErrorText>
+              </div>
+              <div>
+                <FileInput
+                  icon={ImageIcon}
+                  label="Agent Photo"
+                  accept="image/*"
+                  file={formData.agentPhoto}
+                  onChange={(e) => {
+                    onAgentPhotoChange(e);
+                    if (hasSubmitted) validateAndSet();
+                  }}
+                  onClear={() => {
+                    onClearAgentPhoto();
+                    if (hasSubmitted) validateAndSet();
+                  }}
+                />
+                <ErrorText>{hasSubmitted ? errors.agentPhoto : ""}</ErrorText>
+              </div>
             </div>
           </div>
         </section>

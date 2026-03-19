@@ -1,8 +1,8 @@
 "use client";
 
 import React, { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import FlyerTemplateHero from "./FlyerTemplateHero";
-import FlyerTemplateGrid from "./FlyerTemplateGrid";
+import FlyerTemplateShowcase from "./FlyerTemplateShowcase";
+import FlyerTemplateGallery from "./FlyerTemplateGallery";
 import FlyerTemplateMinimalistic from "./FlyerTemplateMinimalistic";
 
 const CANVAS = {
@@ -20,9 +20,9 @@ const FlyerPreview = forwardRef(function FlyerPreview(
   const [scale, setScale] = useState(1);
 
   const Template = useMemo(() => {
-    if (template === "grid") return FlyerTemplateGrid;
+    if (template === "grid") return FlyerTemplateGallery;
     if (template === "minimal") return FlyerTemplateMinimalistic;
-    return FlyerTemplateHero;
+    return FlyerTemplateShowcase;
   }, [template]);
 
   useEffect(() => {
@@ -63,7 +63,7 @@ const FlyerPreview = forwardRef(function FlyerPreview(
           <div
             key={template}
             ref={exportRef}
-            className="h-full w-full overflow-hidden rounded-2xl border border-gray-200 bg-white"
+            className="h-full w-full overflow-hidden bg-white"
           >
             <div className="relative h-full w-full">
               <Template formData={formData} images={images} />

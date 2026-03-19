@@ -46,7 +46,7 @@ function makeHashtags({ propertyType, area, photoTags }) {
     "DreamHome",
     "HomeForSale",
     "RealEstate",
-    "AngkorListing",
+    "OakAndKey",
   ]);
 
   const type = cleanText(propertyType).toLowerCase();

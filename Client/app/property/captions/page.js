@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePropertyStore } from "@/app/lib/propertyStore";
+import InlineSpinner from "../components/InlineSpinner";
 import { generateCaptionVariants } from "@/app/lib/captions/generate";
 
 export default function CaptionsPage() {
@@ -166,15 +167,25 @@ export default function CaptionsPage() {
             type="button"
             onClick={handleGenerate}
             disabled={isGenerating || (mode === "ai" && selectedImageIndexes.length === 0)}
-            className="hover-lift ml-auto rounded-xl bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-[#0b0f14] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="hover-lift ml-auto inline-flex items-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-[#0b0f14] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isGenerating ? "Generating..." : variants ? "Regenerate" : "Generate"}
+            {isGenerating ? (
+              <>
+                <InlineSpinner />
+                Generating...
+              </>
+            ) : variants ? (
+              "Regenerate"
+            ) : (
+              "Generate"
+            )}
           </button>
         </div>
         {mode === "ai" && images.length > 0 ? (
           <div className="mt-4">
-            <div className="mb-2 text-xs font-semibold tracking-wide text-[color:var(--ink-muted)] uppercase">
-              Choose up to 3 photos for Gemini
+            <div className="mb-2 flex items-center justify-between gap-4 text-xs font-semibold tracking-wide text-[color:var(--ink-muted)] uppercase">
+              <span>Choose up to 3 photos for Gemini</span>
+              <span>{selectedImageIndexes.length}/3</span>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
               {images.map((img, idx) => {
@@ -203,9 +214,6 @@ export default function CaptionsPage() {
                 );
               })}
             </div>
-            <p className="mt-1 text-xs text-[color:var(--ink-muted)]">
-              Selected: {selectedImageIndexes.length}/3
-            </p>
           </div>
         ) : null}
         {mode === "ai" && aiError ? (
@@ -240,13 +248,7 @@ export default function CaptionsPage() {
             </section>
           ))}
         </div>
-      ) : (
-        <section className="form-section pt-5">
-          <p className="text-sm text-[color:var(--ink-muted)]">
-            Choose a mode, then click Generate to create captions.
-          </p>
-        </section>
-      )}
+      ) : null}
     </div>
   );
 }
