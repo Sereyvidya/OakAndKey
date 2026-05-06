@@ -29,8 +29,16 @@ export default function GeneralInfoPage() {
     setFormData({ propertyType: value });
   };
 
-  const handleAutofill = (values) => {
-    setFormData(values);
+  const handleAutofill = (payload) => {
+    if (payload?.formData) {
+      setFormData(payload.formData);
+      if (Array.isArray(payload.images)) {
+        setImages(payload.images);
+      }
+      return;
+    }
+
+    setFormData(payload);
   };
 
   const fileToBase64 = (file) =>

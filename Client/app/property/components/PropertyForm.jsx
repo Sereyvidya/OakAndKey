@@ -75,13 +75,14 @@ const US_STATE_CODES = [
   "WI",
   "WY",
 ];
-const SAMPLE_AUTOFILL = {
+const SAMPLE_AUTOFILL_FORM = {
   propertyTitle: "Modern 4-Bedroom Family Home",
   address: "2716 Maple Grove Dr, Austin, TX",
   addressStreet: "2716 Maple Grove Dr",
   addressCity: "Austin",
   addressState: "TX",
   price: "485000",
+  propertyType: "house",
   bedrooms: "4",
   bathrooms: "3",
   size: "245",
@@ -92,6 +93,38 @@ const SAMPLE_AUTOFILL = {
   agentSocialLink: "oakandkey.com",
   agentPhone: "(512) 555-0147",
   agentEmail: "John.Carter@gmail.com",
+};
+
+const SAMPLE_AUTOFILL = {
+  formData: {
+    ...SAMPLE_AUTOFILL_FORM,
+    agentCompanyLogo: {
+      name: "Logo.png",
+      preview: "/Logo.png",
+    },
+    agentPhoto: {
+      name: "Headshot.jpg",
+      preview: "/Headshot.jpg",
+    },
+  },
+  images: [
+    {
+      name: "Dining.jpg",
+      preview: "/Dining.jpg",
+    },
+    {
+      name: "Entry.jpg",
+      preview: "/Entry.jpg",
+    },
+    {
+      name: "Lawn.jpg",
+      preview: "/Lawn.jpg",
+    },
+    {
+      name: "Living Room.jpg",
+      preview: "/Living Room.jpg",
+    },
+  ],
 };
 
 function splitAddressParts(value = "") {
@@ -212,7 +245,8 @@ function validateForm(formData, images = []) {
   // Agent required
   if (!agentName) errors.agentName = "Agent name is required.";
   if (!companyName) errors.agentCompanyName = "Company name is required.";
-  if (!socialLink) errors.agentSocialLink = "Social or website link is required.";
+  if (!socialLink)
+    errors.agentSocialLink = "Social or website link is required.";
 
   // Phone & Email are required
   if (!phone) {
@@ -307,7 +341,14 @@ function FileInput({ icon: Icon, label, onChange, onClear, accept, file }) {
   );
 }
 
-function MultiFileInput({ icon: Icon, label, onChange, onClear, files, hasError }) {
+function MultiFileInput({
+  icon: Icon,
+  label,
+  onChange,
+  onClear,
+  files,
+  hasError,
+}) {
   const inputId = `${label.replace(/\s+/g, "-").toLowerCase()}-input`;
 
   return (
@@ -636,7 +677,7 @@ export default function PropertyForm({
                   name: "propertyTitle",
                   value: formData.propertyTitle,
                   onChange: onInputChange,
-                  placeholder: SAMPLE_AUTOFILL.propertyTitle,
+                  placeholder: SAMPLE_AUTOFILL_FORM.propertyTitle,
                   "aria-invalid": Boolean(
                     isTitleTooLong || (hasSubmitted && errors.propertyTitle)
                   ),
@@ -681,7 +722,7 @@ export default function PropertyForm({
                       updateAddressPart("addressStreet", e.target.value)
                     }
                     className="h-8 w-full bg-transparent pr-2 pl-10 text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-muted)] focus:outline-none"
-                    placeholder={SAMPLE_AUTOFILL.addressStreet}
+                    placeholder={SAMPLE_AUTOFILL_FORM.addressStreet}
                     aria-label="Street address"
                     aria-invalid={Boolean(hasSubmitted && errors.address)}
                   />
@@ -702,7 +743,7 @@ export default function PropertyForm({
                       updateAddressPart("addressCity", e.target.value)
                     }
                     className="h-8 w-full bg-transparent pr-2 pl-10 text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-muted)] focus:outline-none"
-                    placeholder={SAMPLE_AUTOFILL.addressCity}
+                    placeholder={SAMPLE_AUTOFILL_FORM.addressCity}
                     aria-label="City"
                     aria-invalid={Boolean(hasSubmitted && errors.address)}
                   />
@@ -776,7 +817,7 @@ export default function PropertyForm({
                         ? "field-error"
                         : "border-[color:var(--field-border)]",
                     ].join(" ")}
-                    placeholder={SAMPLE_AUTOFILL.price}
+                    placeholder={SAMPLE_AUTOFILL_FORM.price}
                     aria-invalid={Boolean(hasSubmitted && errors.price)}
                   />
                 </div>
@@ -883,7 +924,7 @@ export default function PropertyForm({
                     value: formData.bedrooms,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: SAMPLE_AUTOFILL.bedrooms,
+                    placeholder: SAMPLE_AUTOFILL_FORM.bedrooms,
                     min: "0",
                     step: "1",
                   }}
@@ -910,7 +951,7 @@ export default function PropertyForm({
                     value: formData.bathrooms,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: SAMPLE_AUTOFILL.bathrooms,
+                    placeholder: SAMPLE_AUTOFILL_FORM.bathrooms,
                     min: "0",
                     step: "1",
                   }}
@@ -937,7 +978,7 @@ export default function PropertyForm({
                     value: formData.size,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: SAMPLE_AUTOFILL.size,
+                    placeholder: SAMPLE_AUTOFILL_FORM.size,
                     min: "0",
                     step: "1",
                   }}
@@ -974,7 +1015,7 @@ export default function PropertyForm({
                   maxLength={400}
                   className="form-input-focus form-field w-full rounded-md border border-[color:var(--field-border)] px-4 py-2 pr-14 pb-12"
                   rows={4}
-                  placeholder={SAMPLE_AUTOFILL.description}
+                  placeholder={SAMPLE_AUTOFILL_FORM.description}
                 />
                 <div className="absolute right-2 bottom-4">
                   <GeminiButton
@@ -1094,7 +1135,7 @@ export default function PropertyForm({
                   name: "agentName",
                   value: formData.agentName,
                   onChange: onInputChange,
-                  placeholder: SAMPLE_AUTOFILL.agentName,
+                  placeholder: SAMPLE_AUTOFILL_FORM.agentName,
                   "aria-invalid": Boolean(hasSubmitted && errors.agentName),
                 }}
               />
@@ -1119,7 +1160,7 @@ export default function PropertyForm({
                     name: "agentCompanyName",
                     value: formData.agentCompanyName || "",
                     onChange: onInputChange,
-                    placeholder: SAMPLE_AUTOFILL.agentCompanyName,
+                    placeholder: SAMPLE_AUTOFILL_FORM.agentCompanyName,
                     "aria-invalid": Boolean(
                       hasSubmitted && errors.agentCompanyName
                     ),
@@ -1146,7 +1187,7 @@ export default function PropertyForm({
                     name: "agentSocialLink",
                     value: formData.agentSocialLink || "",
                     onChange: onInputChange,
-                    placeholder: SAMPLE_AUTOFILL.agentSocialLink,
+                    placeholder: SAMPLE_AUTOFILL_FORM.agentSocialLink,
                     "aria-invalid": Boolean(
                       hasSubmitted && errors.agentSocialLink
                     ),
@@ -1177,7 +1218,7 @@ export default function PropertyForm({
                     name: "agentPhone",
                     value: formData.agentPhone,
                     onChange: onInputChange,
-                    placeholder: SAMPLE_AUTOFILL.agentPhone,
+                    placeholder: SAMPLE_AUTOFILL_FORM.agentPhone,
                   }}
                 />
 
@@ -1202,7 +1243,7 @@ export default function PropertyForm({
                     name: "agentEmail",
                     value: formData.agentEmail,
                     onChange: onInputChange,
-                    placeholder: SAMPLE_AUTOFILL.agentEmail,
+                    placeholder: SAMPLE_AUTOFILL_FORM.agentEmail,
                   }}
                 />
 
@@ -1227,7 +1268,9 @@ export default function PropertyForm({
                     if (hasSubmitted) validateAndSet();
                   }}
                 />
-                <ErrorText>{hasSubmitted ? errors.agentCompanyLogo : ""}</ErrorText>
+                <ErrorText>
+                  {hasSubmitted ? errors.agentCompanyLogo : ""}
+                </ErrorText>
               </div>
               <div>
                 <FileInput
