@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const nav = [
   { href: "/property/general", label: "General Information" },
@@ -14,11 +14,23 @@ const nav = [
 export default function PropertyNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const activeItem = nav.find((item) => pathname === item.href) ?? nav[0];
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <nav className="hidden items-center gap-6 md:flex">
         {nav.map((item) => {
           const active = pathname === item.href;
@@ -41,7 +53,8 @@ export default function PropertyNav() {
 
       <div className="md:hidden">
         <button
-          onClick={() => setOpen(!open)}
+          type="button"
+          onClick={() => setOpen((current) => !current)}
           className="rounded-xl border border-[var(--card-border)] px-4 py-2 text-sm font-semibold"
         >
           {activeItem.label} ▾

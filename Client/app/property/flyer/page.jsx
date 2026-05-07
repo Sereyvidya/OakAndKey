@@ -107,7 +107,7 @@ export default function FlyerPage() {
     <div className="interactive-form min-h-[calc(100vh-80px)]">
       <div>
         {/* Top controls bar */}
-        <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 px-4 py-4 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur">
+        <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <h1 className="min-w-0 truncate text-3xl font-semibold text-[color:var(--ink-strong)]">
               Flyer Builder

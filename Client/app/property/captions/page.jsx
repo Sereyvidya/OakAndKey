@@ -223,7 +223,7 @@ export default function CaptionsPage() {
               isGenerating ||
               (mode === "ai" && selectedImageIndexes.length === 0)
             }
-            className="hover-lift inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[1rem] bg-[var(--brand)] px-6 text-sm font-semibold text-[#0b0f14] shadow-[0_10px_24px_-22px_rgba(15,23,42,0.45)] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="hover-lift inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-6 text-sm font-semibold text-[#0b0f14] shadow-[0_10px_24px_-22px_rgba(15,23,42,0.45)] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isGenerating ? (
               <>
