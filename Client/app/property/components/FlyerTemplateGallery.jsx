@@ -179,9 +179,9 @@ export default function FlyerTemplateGallery({ formData, images }) {
             <g clipPath="url(#gallery-hero-clip)">
               <image
                 href={hero}
-                x="260"
+                x="200"
                 y="0"
-                width="820"
+                width="880"
                 height="780"
                 preserveAspectRatio="xMidYMid slice"
               />
@@ -233,7 +233,7 @@ export default function FlyerTemplateGallery({ formData, images }) {
         {/* Description */}
         <div className="absolute top-[800px] left-[50px] z-20">
           <div className="grid grid-cols-[300px_640px]">
-            <div className="my-auto flex flex-col gap-3">
+            <div className="flex flex-col justify-center gap-3">
               <div
                 className="text-[46px] leading-none whitespace-nowrap text-white italic"
                 style={{ fontFamily: "Georgia, serif" }}

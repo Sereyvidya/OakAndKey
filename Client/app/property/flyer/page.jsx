@@ -104,72 +104,43 @@ export default function FlyerPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-80px)]">
+    <div className="interactive-form min-h-[calc(100vh-80px)]">
       <div>
         {/* Top controls bar */}
         <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 px-4 py-4 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            {/* Title + template */}
-            <div className="min-w-0">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-6">
-                <div className="min-w-0">
-                  <h1 className="truncate text-2xl font-semibold text-[color:var(--ink-strong)]">
-                    Flyer Builder
-                  </h1>
-                  <p className="text-sm text-[color:var(--ink-muted)]">Portrait (1080×1350)</p>
-                </div>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="min-w-0 truncate text-3xl font-semibold text-[color:var(--ink-strong)]">
+              Flyer Builder
+            </h1>
 
-                <div className="flex gap-1 rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)] p-1">
-                  {TEMPLATES.map(({ key, label }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setTemplate(key)}
-                      className={[
-                        "hover-lift rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                        template === key
-                          ? "bg-[var(--brand)] text-[#0b0f14]"
-                          : "text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
-                      ].join(" ")}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <div className="flex shrink-0 items-center gap-2 rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)] p-1">
+              {TEMPLATES.map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTemplate(key)}
+                  className={[
+                    "hover-lift rounded-lg px-3 py-1.5 text-sm font-medium transition",
+                    template === key
+                      ? "bg-[var(--brand)] text-[#0b0f14]"
+                      : "text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
+                  ].join(" ")}
+                >
+                  {label}
+                </button>
+              ))}
 
-            {/* Actions */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
               <button
                 type="button"
                 onClick={exportPNG}
                 disabled={isExporting}
-                className="hover-lift inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--card-border)] bg-white px-4 py-2 text-sm font-semibold text-[#1a2230] hover:bg-[#eef2f8] disabled:opacity-60 sm:w-auto"
+                aria-label="Download flyer as PNG"
+                className="hover-lift inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--ink-base)] transition hover:bg-[color:var(--surface-soft)] disabled:opacity-60"
               >
                 {isExportingPNG ? (
-                  <>
-                    <InlineSpinner />
-                    Exporting PNG...
-                  </>
+                  <InlineSpinner />
                 ) : (
-                  "Export PNG"
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={exportPDF}
-                disabled={isExporting}
-                className="hover-lift inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--card-border)] bg-white px-4 py-2 text-sm font-semibold text-[#1a2230] hover:bg-[#eef2f8] disabled:opacity-60 sm:w-auto"
-              >
-                {isExportingPDF ? (
-                  <>
-                    <InlineSpinner />
-                    Exporting PDF...
-                  </>
-                ) : (
-                  "Export PDF"
+                  <span className="text-lg leading-none">↓</span>
                 )}
               </button>
             </div>

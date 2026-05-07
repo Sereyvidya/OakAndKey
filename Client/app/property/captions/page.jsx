@@ -131,6 +131,12 @@ export default function CaptionsPage() {
     });
   };
 
+  useEffect(() => {
+    if (!hasMinimumData) return;
+
+    setLocalVariants(generateCaptionVariants(formData, images).slice(0, 3));
+  }, [hasMinimumData, formData, images]);
+
   if (!hasMinimumData) {
     return (
       <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.7)]">
@@ -152,7 +158,7 @@ export default function CaptionsPage() {
 
   return (
     <div className="interactive-form rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.7)]">
-      <section className="mb-6">
+      <section className="relative z-20 mb-6">
         <h1 className="text-3xl font-semibold text-[color:var(--ink-strong)]">
           Social Captions
         </h1>
@@ -165,12 +171,12 @@ export default function CaptionsPage() {
           <label className="sr-only" htmlFor="caption-generator-mode">
             Caption generator mode
           </label>
-          <div className="relative min-w-0 flex-1" ref={modeMenuRef}>
+          <div className="relative shrink-0" ref={modeMenuRef}>
             <button
               type="button"
               id="caption-generator-mode"
               onClick={() => setIsModeOpen((open) => !open)}
-              className="form-input-focus form-field relative flex h-11 w-full items-center justify-between rounded-[1rem] border border-[color:var(--field-border)] bg-[color:var(--field-bg)] px-4 text-left text-sm font-semibold text-[color:var(--ink-base)] shadow-[0_10px_24px_-22px_rgba(15,23,42,0.45)] transition hover:bg-[color:var(--surface-soft)]"
+              className="form-input-focus form-field relative flex h-11 w-auto min-w-[180px] items-center justify-between rounded-[1rem] border border-[color:var(--field-border)] bg-[color:var(--field-bg)] px-4 text-left text-sm font-semibold text-[color:var(--ink-base)] shadow-[0_10px_24px_-22px_rgba(15,23,42,0.45)] transition hover:bg-[color:var(--surface-soft)]"
               aria-haspopup="listbox"
               aria-expanded={isModeOpen}
             >
@@ -182,7 +188,7 @@ export default function CaptionsPage() {
 
             {isModeOpen ? (
               <div
-                className="absolute z-10 mt-2 w-full overflow-hidden rounded-[1rem] border border-[var(--card-border)] bg-[color:var(--surface)] shadow-[0_20px_35px_-24px_rgba(15,23,42,0.55)]"
+                className="absolute z-50 mt-2 w-full overflow-hidden rounded-[1rem] border border-[var(--card-border)] bg-[color:var(--surface)] shadow-[0_20px_35px_-24px_rgba(15,23,42,0.55)]"
                 role="listbox"
                 aria-label="Caption generator mode"
               >
@@ -224,7 +230,7 @@ export default function CaptionsPage() {
                 <InlineSpinner />
                 Generating...
               </>
-            ) : variants ? (
+            ) : mode === "ai" && variants ? (
               "Regenerate"
             ) : (
               "Generate"
