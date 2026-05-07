@@ -447,6 +447,8 @@ export default function PropertyForm({
   onPropertyTypeSelect,
 }) {
   const [isPropertyTypeOpen, setIsPropertyTypeOpen] = useState(false);
+  const [isStateOpen, setIsStateOpen] = useState(false);
+  const stateRef = useRef(null);
   const [errors, setErrors] = useState({});
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isRewording, setIsRewording] = useState(false);
@@ -563,6 +565,9 @@ export default function PropertyForm({
 
           return false;
         });
+      }
+      if (stateRef.current && !stateRef.current.contains(event.target)) {
+        setIsStateOpen(false);
       }
     };
 
@@ -755,29 +760,60 @@ export default function PropertyForm({
                   <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
                     <Map size={16} />
                   </span>
-                  <select
-                    id="addressState"
-                    name="addressState"
-                    value={addressState}
-                    onChange={(e) =>
-                      updateAddressPart("addressState", e.target.value)
-                    }
-                    className={[
-                      "h-8 w-full appearance-none bg-transparent pr-7 pl-10 focus:outline-none",
-                      addressState
-                        ? "text-[color:var(--ink-strong)]"
-                        : "text-[color:var(--ink-muted)]",
-                    ].join(" ")}
-                    aria-label="State"
-                    aria-invalid={Boolean(hasSubmitted && errors.address)}
-                  >
-                    <option value="">State</option>
-                    {US_STATE_CODES.map((code) => (
-                      <option key={code} value={code} className="text-black">
-                        {code}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative min-w-0 flex-1" ref={stateRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsStateOpen((open) => !open)}
+                      className={[
+                        "flex h-8 w-full items-center bg-transparent pr-7 pl-10 text-left focus:outline-none",
+                        addressState
+                          ? "text-[color:var(--ink-strong)]"
+                          : "text-[color:var(--ink-muted)]",
+                      ].join(" ")}
+                      aria-haspopup="listbox"
+                      aria-expanded={isStateOpen}
+                      aria-label="State"
+                    >
+                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
+                        <Map size={16} />
+                      </span>
+
+                      <span>{addressState || "State"}</span>
+
+                      <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--ink-muted)]">
+                        ▾
+                      </span>
+                    </button>
+
+                    {isStateOpen && (
+                      <div
+                        className="absolute right-0 z-20 mt-3 max-h-48 w-full overflow-y-auto rounded-md border border-[var(--card-border)] bg-[var(--surface)] shadow-lg"
+                        role="listbox"
+                        aria-label="State"
+                      >
+                        {US_STATE_CODES.map((code) => (
+                          <button
+                            key={code}
+                            type="button"
+                            onClick={() => {
+                              updateAddressPart("addressState", code);
+                              setIsStateOpen(false);
+                            }}
+                            className={[
+                              "w-full px-4 py-2 text-left text-sm hover:bg-[color:var(--surface-soft)]",
+                              addressState === code
+                                ? "bg-[var(--brand-soft)] text-[var(--brand-strong)]"
+                                : "text-[color:var(--ink-strong)]",
+                            ].join(" ")}
+                            role="option"
+                            aria-selected={addressState === code}
+                          >
+                            {code}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--ink-muted)]">
                     ▾
                   </span>

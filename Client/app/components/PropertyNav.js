@@ -29,8 +29,8 @@ export default function PropertyNav() {
               href={item.href}
               className={
                 active
-                  ? "text-sm font-semibold text-[var(--brand)]"
-                  : "text-sm font-semibold text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)]"
+                  ? "font-semibold text-[var(--brand)]"
+                  : "font-semibold text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)]"
               }
             >
               {item.label}
