@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import InlineSpinner from "../components/InlineSpinner";
 import { generateCaptionVariants } from "@/app/lib/captions/generate";
+
+const CAPTION_MODES = [
+  { value: "local", label: "Local Generator" },
+  { value: "ai", label: "Gemini" },
+];
 
 export default function CaptionsPage() {
   const formData = usePropertyStore((s) => s.formData);
@@ -16,14 +21,18 @@ export default function CaptionsPage() {
   const [aiError, setAiError] = useState("");
   const [mode, setMode] = useState("local");
   const [selectedImageIndexes, setSelectedImageIndexes] = useState([]);
+  const [isModeOpen, setIsModeOpen] = useState(false);
+  const modeMenuRef = useRef(null);
 
   const hasMinimumData = Boolean(
     formData.propertyTitle?.trim() ||
-      formData.address?.trim() ||
-      images?.length > 0
+    formData.address?.trim() ||
+    images?.length > 0
   );
 
   const variants = mode === "ai" ? aiVariants : localVariants;
+  const selectedMode =
+    CAPTION_MODES.find((option) => option.value === mode) || CAPTION_MODES[0];
 
   useEffect(() => {
     setSelectedImageIndexes((prev) => {
@@ -38,6 +47,17 @@ export default function CaptionsPage() {
     setAiVariants(null);
     setAiError("");
   }, [formData, images]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!modeMenuRef.current?.contains(event.target)) {
+        setIsModeOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const copyVariant = async (variant) => {
     const payload = `${variant.caption}\n\n${variant.hashtags.join(" ")}`;
@@ -58,10 +78,13 @@ export default function CaptionsPage() {
 
       const payload = {
         formData,
-        images: selectedImageIndexes.map((idx) => images[idx]).filter(Boolean).map((img) => ({
-          name: img?.name || "",
-          preview: img?.preview || "",
-        })),
+        images: selectedImageIndexes
+          .map((idx) => images[idx])
+          .filter(Boolean)
+          .map((img) => ({
+            name: img?.name || "",
+            preview: img?.preview || "",
+          })),
       };
 
       const resp = await fetch("/api/captions/generate", {
@@ -138,36 +161,63 @@ export default function CaptionsPage() {
             ? "Use Gemini to generate 3 caption versions from your listing details and selected photos."
             : "Use the local generator to create 3 caption versions from your listing details."}
         </p>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setMode("local")}
-            className={[
-              "hover-lift rounded-xl px-4 py-2 text-sm font-semibold transition",
-              mode === "local"
-                ? "bg-[var(--brand)] text-[#0b0f14] hover:bg-[var(--brand-strong)]"
-                : "border border-[var(--field-border)] bg-[color:var(--field-bg)] text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
-            ].join(" ")}
-          >
-            Use Local Generator
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("ai")}
-            className={[
-              "hover-lift rounded-xl px-4 py-2 text-sm font-semibold transition",
-              mode === "ai"
-                ? "bg-[var(--brand)] text-[#0b0f14] hover:bg-[var(--brand-strong)]"
-                : "border border-[var(--field-border)] bg-[color:var(--field-bg)] text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
-            ].join(" ")}
-          >
-            Use Gemini
-          </button>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <label className="sr-only" htmlFor="caption-generator-mode">
+            Caption generator mode
+          </label>
+          <div className="relative min-w-0 flex-1" ref={modeMenuRef}>
+            <button
+              type="button"
+              id="caption-generator-mode"
+              onClick={() => setIsModeOpen((open) => !open)}
+              className="form-input-focus form-field relative flex h-11 w-full items-center justify-between rounded-[1rem] border border-[color:var(--field-border)] bg-[color:var(--field-bg)] px-4 text-left text-sm font-semibold text-[color:var(--ink-base)] shadow-[0_10px_24px_-22px_rgba(15,23,42,0.45)] transition hover:bg-[color:var(--surface-soft)]"
+              aria-haspopup="listbox"
+              aria-expanded={isModeOpen}
+            >
+              <span>{selectedMode.label}</span>
+              <span className="ml-3 text-xs text-[color:var(--ink-muted)]">
+                ▾
+              </span>
+            </button>
+
+            {isModeOpen ? (
+              <div
+                className="absolute z-10 mt-2 w-full overflow-hidden rounded-[1rem] border border-[var(--card-border)] bg-[color:var(--surface)] shadow-[0_20px_35px_-24px_rgba(15,23,42,0.55)]"
+                role="listbox"
+                aria-label="Caption generator mode"
+              >
+                {CAPTION_MODES.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setMode(option.value);
+                      setIsModeOpen(false);
+                    }}
+                    className={[
+                      "flex w-full items-center px-4 py-2.5 text-left text-sm font-semibold transition",
+                      mode === option.value
+                        ? "bg-[var(--brand-soft)] text-[var(--brand-strong)]"
+                        : "text-[color:var(--ink-strong)] hover:bg-[color:var(--surface-soft)]",
+                    ].join(" ")}
+                    role="option"
+                    aria-selected={mode === option.value}
+                  >
+                    <span>{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
           <button
             type="button"
             onClick={handleGenerate}
-            disabled={isGenerating || (mode === "ai" && selectedImageIndexes.length === 0)}
-            className="hover-lift ml-auto inline-flex items-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-[#0b0f14] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={
+              isGenerating ||
+              (mode === "ai" && selectedImageIndexes.length === 0)
+            }
+            className="hover-lift inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[1rem] bg-[var(--brand)] px-6 text-sm font-semibold text-[#0b0f14] shadow-[0_10px_24px_-22px_rgba(15,23,42,0.45)] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isGenerating ? (
               <>
@@ -238,7 +288,7 @@ export default function CaptionsPage() {
                 </button>
               </div>
 
-              <pre className="mt-3 whitespace-pre-wrap font-sans text-sm leading-relaxed text-[color:var(--ink-base)]">
+              <pre className="mt-3 font-sans text-sm leading-relaxed whitespace-pre-wrap text-[color:var(--ink-base)]">
                 {variant.caption}
               </pre>
 

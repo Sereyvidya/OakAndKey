@@ -92,7 +92,17 @@ export default function FlyerTemplateGallery({ formData, images }) {
 
   const gallery = (images || []).map(pickSrc).filter(Boolean);
   const hero = gallery[0] || "";
-  const thumbs = gallery.slice(1, 5);
+  const galleryPhotos = gallery.slice(1, 7);
+  const photoCount = galleryPhotos.length;
+
+  const galleryConfig =
+    photoCount <= 3
+      ? { cols: photoCount || 3, gap: 22, height: 170 }
+      : photoCount === 4
+        ? { cols: 4, gap: 18, height: 150 }
+        : photoCount === 5
+          ? { cols: 5, gap: 14, height: 135 }
+          : { cols: 6, gap: 12, height: 125 };
 
   const agentName = cleanText(formData.agentName) || "Listing Agent";
   const agentCompanyName = cleanText(formData.agentCompanyName);
@@ -130,7 +140,7 @@ export default function FlyerTemplateGallery({ formData, images }) {
               }}
             />
 
-            <div className="absolute inset-0 flex items-start justify-center pt-8">
+            <div className="absolute inset-0 flex flex-col items-center pt-10">
               {companyLogo ? (
                 <img
                   src={companyLogo}
@@ -142,6 +152,13 @@ export default function FlyerTemplateGallery({ formData, images }) {
                   {agentCompanyName || "Company Logo"}
                 </div>
               )}
+              <div
+                style={{
+                  color: COLORS.dark,
+                }}
+              >
+                {agentCompanyName}
+              </div>
             </div>
           </div>
         </div>
@@ -159,13 +176,16 @@ export default function FlyerTemplateGallery({ formData, images }) {
           </defs>
 
           {hero ? (
-            <image
-              href={hero}
-              width="1080"
-              height="1350"
-              preserveAspectRatio="xMidYMid slice"
-              clipPath="url(#gallery-hero-clip)"
-            />
+            <g clipPath="url(#gallery-hero-clip)">
+              <image
+                href={hero}
+                x="260"
+                y="0"
+                width="820"
+                height="780"
+                preserveAspectRatio="xMidYMid slice"
+              />
+            </g>
           ) : (
             <rect width="1080" height="1350" fill="#e5e7eb" />
           )}
@@ -212,7 +232,7 @@ export default function FlyerTemplateGallery({ formData, images }) {
 
         {/* Description */}
         <div className="absolute top-[800px] left-[50px] z-20">
-          <div className="grid grid-cols-[320px_640px]">
+          <div className="grid grid-cols-[300px_640px]">
             <div className="my-auto flex flex-col gap-3">
               <div
                 className="text-[46px] leading-none whitespace-nowrap text-white italic"
@@ -230,7 +250,7 @@ export default function FlyerTemplateGallery({ formData, images }) {
               </div>
             </div>
 
-            <p className="w-[640px] text-[16px] leading-[1.55] tracking-[0.01em] text-white">
+            <p className="w-[640px] text-[18px] leading-[1.55] tracking-[0.01em] text-white">
               <span
                 className="float-right h-[150px] w-[320px]"
                 style={{
@@ -243,66 +263,97 @@ export default function FlyerTemplateGallery({ formData, images }) {
           </div>
         </div>
 
-        {/* Thumbnails */}
-        <div className="absolute right-[300px] bottom-[165px] left-[60px] z-20 grid grid-cols-3 gap-4">
-          {thumbs.map((src, i) => (
-            <div key={i} className="overflow-hidden border border-white/20">
-              {src ? (
-                <img src={src} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full items-center justify-center text-white/60">
-                  Photo
-                </div>
-              )}
-            </div>
-          ))}
+        {/* Gallery photos */}
+        <div className="absolute right-[50px] bottom-[165px] left-[50px] z-20">
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `repeat(${galleryConfig.cols}, minmax(0, 1fr))`,
+              gap: `${galleryConfig.gap}px`,
+            }}
+          >
+            {galleryPhotos.map((src, i) => (
+              <div
+                key={i}
+                className="overflow-hidden rounded-sm border border-white/25 bg-white/10 shadow-lg"
+                style={{ height: `${galleryConfig.height}px` }}
+              >
+                <img
+                  src={src}
+                  alt={`Property photo ${i + 2}`}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Footer (agent) */}
-        <div className="absolute right-0 bottom-0 left-0 grid h-[140px] grid-cols-[220px_1fr]">
-          <div className="flex items-center justify-center bg-white">
-            {companyLogo ? (
-              <img src={companyLogo} className="max-h-full object-contain" />
-            ) : (
-              <div className="text-sm text-black/60">Logo</div>
-            )}
-          </div>
-
-          <div className="relative flex flex-col justify-center bg-[#171c24] pr-[140px] pl-[90px] text-white">
-            <div className="text-[28px] font-semibold text-[#beb491]">
-              {agentName}
-            </div>
-            <div className="text-[12px] uppercase">
-              RESIDENTIAL SPECIALIST{" "}
-              {agentCompanyName ? `| ${agentCompanyName}` : ""}
-            </div>
-
-            <div className="mt-2 flex gap-4 text-[14px]">
-              {phone && (
-                <div className="flex items-center gap-2">
-                  <PhoneIcon /> {phone}
-                </div>
-              )}
-              {email && (
-                <div className="flex items-center gap-2">
-                  <MailIcon /> {email}
-                </div>
-              )}
-            </div>
-
-            {qrSrc && (
-              <img
-                src={qrSrc}
-                className="absolute top-1/2 right-4 h-[90px] w-[90px] -translate-y-1/2"
-              />
-            )}
-
+        <div className="absolute right-0 bottom-3 left-0 z-30 h-[145px] bg-[#171c24]">
+          <div className="relative h-full px-[50px] py-5 text-white">
+            {/* Agent photo */}
             {agentPhoto && (
-              <img
-                src={agentPhoto}
-                className="absolute top-0 left-0 h-[140px] w-[140px] rounded-full object-cover"
-              />
+              <div className="absolute bottom-3 left-[50px] h-[120px] w-[120px] overflow-hidden rounded-full bg-white shadow-xl">
+                <img
+                  src={agentPhoto}
+                  alt={agentName}
+                  className="h-full w-full object-cover"
+                />
+              </div>
             )}
+
+            {/* Agent info */}
+            <div className="ml-[150px] flex w-full flex-col">
+              <div
+                className="truncate text-[36px] font-semibold"
+                style={{ color: COLORS.beige }}
+              >
+                {agentName}
+              </div>
+              <div className="text-[14px] tracking-wide text-white uppercase">
+                RESIDENTIAL SPECIALIST{" "}
+                {agentCompanyName ? `| ${agentCompanyName}` : ""}
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-[20px]">
+                {phone ? (
+                  <div className="flex items-center gap-2">
+                    <div style={{ color: COLORS.beige }}>
+                      <PhoneIcon className="h-10 w-10" />
+                    </div>
+                    <span>{phone}</span>
+                  </div>
+                ) : null}
+                {email ? (
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div style={{ color: COLORS.beige }}>
+                      <MailIcon />
+                    </div>
+                    <span className="max-w-[300px] truncate">{email}</span>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            {/* QR code */}
+            {qrSrc && (
+              <div className="absolute top-1/2 right-[50px] flex -translate-y-1/2 items-center gap-4">
+                <div className="text-right"></div>
+
+                <div className="rounded-md bg-white p-2 shadow-lg">
+                  <img
+                    src={qrSrc}
+                    alt="QR code"
+                    className="h-[92px] w-[92px]"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* top accent line */}
+            {/* <div
+              className="absolute top-0 right-0 left-0 h-[3px]"
+              style={{ background: COLORS.beige }}
+            /> */}
           </div>
         </div>
       </div>

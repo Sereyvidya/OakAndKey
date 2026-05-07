@@ -271,24 +271,20 @@ export default function FlyerTemplateShowcase({ formData, images }) {
                         <span className="max-w-[300px] truncate">{email}</span>
                       </div>
                     ) : null}
-                    {/* {socialLink ? (
-                      <div className="flex min-w-0 items-center gap-2 text-white/80">
-                        <Globe className="h-4 w-4" />
-                        <span className="max-w-[240px] truncate text-[16px]">
-                          {socialLink}
-                        </span>
-                      </div>
-                    ) : null} */}
                   </div>
                 </div>
-                {qrSrc ? (
-                  <img
-                    src={qrSrc}
-                    alt="Social or website QR code"
-                    className="right absolute top-1/2 right-2 h-[110px] w-[110px] -translate-y-1/2 object-contain"
-                  />
-                ) : (
-                  <div className="text-center text-xs text-red-600">QR</div>
+                {qrSrc && (
+                  <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-4">
+                    <div className="text-right"></div>
+
+                    <div className="bg-white p-2 shadow-lg">
+                      <img
+                        src={qrSrc}
+                        alt="QR code"
+                        className="h-[92px] w-[92px]"
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
               {agentPhoto ? (

@@ -107,7 +107,7 @@ export default function FlyerPage() {
     <div className="min-h-[calc(100vh-80px)]">
       <div>
         {/* Top controls bar */}
-        <div className="sticky top-[76px] z-20 rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 px-4 py-4 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur lg:static">
+        <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 px-4 py-4 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Title + template */}
             <div className="min-w-0">
