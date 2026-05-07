@@ -1,6 +1,7 @@
 import { Manrope, Sora } from "next/font/google";
 import Image from "next/image";
 import "./globals.css";
+import PropertyNav from "./components/PropertyNav";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -24,7 +25,7 @@ export default function RootLayout({ children }) {
         className={`${manrope.variable} ${sora.variable} font-sans antialiased`}
       >
         <header className="sticky top-0 z-30 border-b border-[var(--card-border)]/80 bg-[color:var(--surface)]/86 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-5 py-4 sm:px-8">
+          <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-4 sm:px-8">
             <div className="flex items-center gap-3">
               <Image
                 src="/Logo.png"
@@ -44,7 +45,7 @@ export default function RootLayout({ children }) {
                 </p>
               </div>
             </div>
-
+            <PropertyNav />
           </div>
         </header>
         {children}
