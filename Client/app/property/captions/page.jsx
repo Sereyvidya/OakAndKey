@@ -8,7 +8,7 @@ import { generateCaptionVariants } from "@/app/lib/captions/generate";
 
 const CAPTION_MODES = [
   { value: "local", label: "Local Generator" },
-  { value: "ai", label: "Gemini" },
+  { value: "ai", label: "AI Generator" },
 ];
 
 export default function CaptionsPage() {

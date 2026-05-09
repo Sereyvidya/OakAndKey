@@ -3,7 +3,7 @@
 import React, { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import FlyerTemplateShowcase from "./FlyerTemplateShowcase";
 import FlyerTemplateGallery from "./FlyerTemplateGallery";
-import FlyerTemplateMinimalistic from "./FlyerTemplateMinimalistic";
+import FlyerTemplateMinimalistic from "./FlyerTemplateModern";
 
 const CANVAS = {
   width: 1080,

@@ -15,16 +15,20 @@ function formatPrice(price) {
 }
 
 function parseAreaFromAddress(address) {
-  const a = cleanText(address);
-  if (!a) return "";
-  const parts = a.split(",").map((x) => x.trim()).filter(Boolean);
-  return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+  const parts = cleanText(address)
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+  if (parts.length >= 2) return parts[parts.length - 2]; // city
+  return parts[0] || "";
 }
 
 function detectPhotoTags(images = []) {
   const names = images
     .map((img) => cleanText(img?.name).toLowerCase())
     .filter(Boolean);
+
   const joined = names.join(" ");
   const tags = new Set();
 
@@ -40,13 +44,12 @@ function detectPhotoTags(images = []) {
   return [...tags];
 }
 
-function makeHashtags({ propertyType, area, photoTags }) {
+function makeHashtags({ propertyType, area, photoTags, companyName }) {
   const tags = new Set([
     "JustListed",
     "DreamHome",
     "HomeForSale",
     "RealEstate",
-    "OakAndKey",
   ]);
 
   const type = cleanText(propertyType).toLowerCase();
@@ -58,6 +61,9 @@ function makeHashtags({ propertyType, area, photoTags }) {
     if (normalized) tags.add(normalized);
   }
 
+  const company = cleanText(companyName).replace(/[^a-zA-Z0-9]/g, "");
+  if (company) tags.add(company);
+
   const map = {
     kitchen: "ModernKitchen",
     bedroom: "CozyBedroom",
@@ -68,6 +74,7 @@ function makeHashtags({ propertyType, area, photoTags }) {
     garden: "GardenHome",
     balcony: "CityViews",
   };
+
   photoTags.forEach((tag) => {
     if (map[tag]) tags.add(map[tag]);
   });
@@ -79,10 +86,12 @@ function buildPropertyFacts(formData) {
   const beds = toNumber(formData.bedrooms);
   const baths = toNumber(formData.bathrooms);
   const size = toNumber(formData.size);
+
   const facts = [];
   if (beds !== null) facts.push(`${beds} bed`);
   if (baths !== null) facts.push(`${baths} bath`);
   if (size !== null) facts.push(`${size} sqm`);
+
   return facts.join(" • ");
 }
 
@@ -93,11 +102,20 @@ export function generateCaptionVariants(formData, images = []) {
   const price = formatPrice(formData.price);
   const facts = buildPropertyFacts(formData);
   const photoTags = detectPhotoTags(images);
-  const hashtags = makeHashtags({ propertyType: type, area, photoTags });
+
+  const hashtags = makeHashtags({
+    propertyType: type,
+    area,
+    photoTags,
+    companyName: formData.agentCompanyName,
+  });
 
   const lead = `${title}${area ? ` in ${area}` : ""}`;
   const factsLine = [type, facts].filter(Boolean).join(" • ");
-  const priceLine = price ? `Listed at ${price}.` : "Price available on request.";
+  const priceLine = price
+    ? `Listed at ${price}.`
+    : "Price available on request.";
+
   const description = cleanText(formData.description);
   const descriptionLine = description
     ? description
@@ -106,14 +124,18 @@ export function generateCaptionVariants(formData, images = []) {
   const photoLine =
     images.length > 0
       ? `Photo highlights: ${
-          photoTags.length ? photoTags.join(", ") : `${images.length} listing photos`
+          photoTags.length
+            ? photoTags.join(", ")
+            : `${images.length} listing photos`
         }.`
       : "Upload photos to generate photo-specific highlights.";
 
   return [
     {
       name: "Version 1 · Premium Listing",
-      caption: `${lead}\n\n${priceLine} ${factsLine ? `Features: ${factsLine}. ` : ""}${descriptionLine}\n\nDM for a private tour.`,
+      caption: `${lead}\n\n${priceLine} ${
+        factsLine ? `Features: ${factsLine}. ` : ""
+      }${descriptionLine}\n\nContact the listing agent for a private tour.`,
       hashtags,
       note: photoLine,
     },
@@ -121,13 +143,15 @@ export function generateCaptionVariants(formData, images = []) {
       name: "Version 2 · Warm Lifestyle",
       caption: `Welcome to ${lead}.\n\n${descriptionLine}\n\n${
         factsLine ? `${factsLine}. ` : ""
-      }${priceLine}\nSchedule your viewing today.`,
+      }${priceLine}\nReach out for more details.`,
       hashtags,
       note: photoLine,
     },
     {
       name: "Version 3 · Short + Direct",
-      caption: `Just listed: ${lead}.\n${factsLine ? `${factsLine}. ` : ""}${priceLine}\nMessage us for details.`,
+      caption: `Just listed: ${lead}.\n${
+        factsLine ? `${factsLine}. ` : ""
+      }${priceLine}\nContact for details.`,
       hashtags,
       note: photoLine,
     },

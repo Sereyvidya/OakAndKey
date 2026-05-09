@@ -7,7 +7,7 @@ import FlyerPreview from "../components/FlyerPreview";
 import InlineSpinner from "../components/InlineSpinner";
 import { hasMinimumFlyerData } from "@/app/lib/flyer/guards";
 import { makeSafeFilename } from "@/app/lib/flyer/filename";
-import { exportFlyerPNG, exportFlyerPDF } from "@/app/lib/flyer/export";
+import { exportFlyerPNG } from "@/app/lib/flyer/export";
 
 const TEMPLATES = [
   { key: "hero", label: "Showcase" },
@@ -24,8 +24,7 @@ export default function FlyerPage() {
 
   const flyerRef = useRef(null);
   const [isExportingPNG, setIsExportingPNG] = useState(false);
-  const [isExportingPDF, setIsExportingPDF] = useState(false);
-  const isExporting = isExportingPNG || isExportingPDF;
+  const isExporting = isExportingPNG;
 
   const hasData = useMemo(
     () => hasMinimumFlyerData({ formData, images }),
@@ -105,63 +104,60 @@ export default function FlyerPage() {
 
   return (
     <div className="interactive-form min-h-[calc(100vh-80px)]">
-      <div>
-        {/* Top controls bar */}
-        <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="min-w-0 truncate text-3xl font-semibold text-[color:var(--ink-strong)]">
-              Flyer Builder
-            </h1>
+      {/* Top controls bar */}
+      <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="min-w-0 truncate text-3xl font-semibold text-[color:var(--ink-strong)]">
+            Flyer Builder
+          </h1>
 
-            <div className="inline-flex w-fit flex-wrap items-center gap-2 rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)] p-1 sm:w-auto sm:shrink-0 sm:flex-nowrap">
-              {" "}
-              {TEMPLATES.map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setTemplate(key)}
-                  className={[
-                    "hover-lift rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                    template === key
-                      ? "bg-[var(--brand)] text-[#0b0f14]"
-                      : "text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
-                  ].join(" ")}
-                >
-                  {label}
-                </button>
-              ))}
+          <div className="inline-flex w-fit flex-wrap items-center gap-2 rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)] p-1 sm:w-auto sm:shrink-0 sm:flex-nowrap">
+            {TEMPLATES.map(({ key, label }) => (
               <button
+                key={key}
                 type="button"
-                onClick={exportPNG}
-                disabled={isExporting}
-                aria-label="Download flyer as PNG"
-                className="hover-lift inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--ink-base)] transition hover:bg-[color:var(--surface-soft)] disabled:opacity-60"
+                onClick={() => setTemplate(key)}
+                className={[
+                  "hover-lift rounded-lg px-3 py-1.5 text-sm font-medium transition",
+                  template === key
+                    ? "bg-[var(--brand)] text-[#0b0f14]"
+                    : "text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
+                ].join(" ")}
               >
-                {isExportingPNG ? (
-                  <InlineSpinner />
-                ) : (
-                  <span className="text-lg leading-none">↓</span>
-                )}
+                {label}
               </button>
-            </div>
+            ))}
+            <button
+              type="button"
+              onClick={exportPNG}
+              disabled={isExporting}
+              aria-label="Download flyer as PNG"
+              className="hover-lift inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--ink-base)] transition hover:bg-[color:var(--surface-soft)] disabled:opacity-60"
+            >
+              {isExportingPNG ? (
+                <InlineSpinner />
+              ) : (
+                <span className="text-lg leading-none">↓</span>
+              )}
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Flyer preview below */}
-        <div className="mt-8 flex w-full justify-center overflow-auto">
-          <div className="w-full">
-            <FlyerPreview
-              ref={flyerRef}
-              formData={formData}
-              images={images}
-              template={template}
-            />
-          </div>
+      {/* Flyer preview below */}
+      <div className="mt-8 flex w-full justify-center overflow-auto">
+        <div className="w-full">
+          <FlyerPreview
+            ref={flyerRef}
+            formData={formData}
+            images={images}
+            template={template}
+          />
         </div>
+      </div>
 
-        <div className="mt-3 text-center text-xs text-[color:var(--ink-muted)]">
-          Preview scales to your screen. Exports remain 1080×1350.
-        </div>
+      <div className="mt-3 text-center text-xs text-[color:var(--ink-muted)]">
+        Preview scales to your screen. Exports remain 1080×1350.
       </div>
     </div>
   );

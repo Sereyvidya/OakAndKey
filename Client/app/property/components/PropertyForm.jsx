@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { propertyTypes } from "../constants/propertyTypes";
+import { composeAddress, splitAddressParts } from "../../lib/address";
 import {
   Tag,
   User,
@@ -126,33 +127,6 @@ const SAMPLE_AUTOFILL = {
     },
   ],
 };
-
-function splitAddressParts(value = "") {
-  const raw = String(value || "").trim();
-  if (!raw) return { street: "", city: "", state: "" };
-
-  const parts = raw
-    .split(",")
-    .map((p) => p.trim())
-    .filter(Boolean);
-  if (parts.length >= 3) {
-    const state = parts.pop() || "";
-    const city = parts.pop() || "";
-    const street = parts.join(", ");
-    return { street, city, state };
-  }
-  if (parts.length === 2) {
-    return { street: parts[0], city: parts[1], state: "" };
-  }
-  return { street: parts[0] || "", city: "", state: "" };
-}
-
-function composeAddress(street = "", city = "", state = "") {
-  return [street, city, state]
-    .map((v) => String(v).trim())
-    .filter(Boolean)
-    .join(", ");
-}
 
 function normalizePhone(value = "") {
   return value.replace(/[^\d+]/g, "");
@@ -455,7 +429,6 @@ export default function PropertyForm({
   const [rewordError, setRewordError] = useState("");
 
   const propertyTypeRef = useRef(null);
-  const didSelectRef = useRef(false);
 
   // refs to scroll to first error
   const fieldRefs = useRef({});
@@ -544,13 +517,7 @@ export default function PropertyForm({
   };
 
   const handlePropertyTypeToggle = () => {
-    setIsPropertyTypeOpen((open) => {
-      const next = !open;
-      if (next) {
-        didSelectRef.current = false; // new open session
-      }
-      return next;
-    });
+    setIsPropertyTypeOpen((open) => !open);
   };
 
   useEffect(() => {
@@ -573,11 +540,9 @@ export default function PropertyForm({
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [formData, images]);
+  }, []);
 
   const handleSelectType = (value) => {
-    didSelectRef.current = true;
-
     onPropertyTypeSelect(value);
     setIsPropertyTypeOpen(false);
   };
@@ -814,12 +779,8 @@ export default function PropertyForm({
                       </div>
                     )}
                   </div>
-                  <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--ink-muted)]">
-                    ▾
-                  </span>
                 </div>
               </div>
-
               <ErrorText>{hasSubmitted ? errors.address : ""}</ErrorText>
             </div>
 
@@ -1049,7 +1010,12 @@ export default function PropertyForm({
                     }
                   }}
                   maxLength={400}
-                  className="form-input-focus form-field w-full rounded-md border border-[color:var(--field-border)] px-4 py-2 pr-14 pb-12"
+                  className={[
+                    "form-input-focus form-field w-full rounded-md border px-4 py-2 pr-14 pb-12",
+                    hasSubmitted && errors.description
+                      ? "field-error"
+                      : "border-[color:var(--field-border)]",
+                  ].join(" ")}
                   rows={4}
                   placeholder={SAMPLE_AUTOFILL_FORM.description}
                 />
@@ -1103,7 +1069,9 @@ export default function PropertyForm({
 
                   const selectedCount = e.target.files?.length ?? 0;
                   const nextImages =
-                    selectedCount > 0 ? new Array(selectedCount).fill({}) : [];
+                    selectedCount > 0
+                      ? [...images, ...new Array(selectedCount).fill({})]
+                      : images;
                   if (hasSubmitted) validateAndSetWith(formData, nextImages);
                 }}
                 onClear={() => {

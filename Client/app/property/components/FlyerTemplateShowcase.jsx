@@ -1,76 +1,22 @@
 "use client";
 
 import { Josefin_Sans } from "next/font/google";
+import {
+  cleanText,
+  formatPrice,
+  pickSrc,
+  joinParts,
+} from "@/app/lib/flyer/format";
+import { FLYER_COLORS as COLORS } from "@/app/lib/flyer/theme";
+import { PhoneIcon, MailIcon } from "./FlyerIcons";
 
 const josefin = Josefin_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
 });
 
-function cleanText(v) {
-  return (v ?? "").toString().trim();
-}
-
-function formatPrice(price) {
-  if (price === null || price === undefined || price === "") return "";
-  const num = Number(price);
-  if (Number.isNaN(num)) return String(price);
-  return num.toLocaleString("en-US");
-}
-
-function pickSrc(img) {
-  return img?.preview || img?.src || img?.url || "";
-}
-
-const PhoneIcon = () => (
-  <svg
-    className="h-4 w-4"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M3 5a2 2 0 012-2h2.28a1 1 0 01.95.68l1.1 3.3a1 1 0 01-.24 1.02l-1.27 1.27a16 16 0 006.59 6.59l1.27-1.27a1 1 0 011.02-.24l3.3 1.1a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.82 21 3 14.18 3 6V5z"
-    />
-  </svg>
-);
-
-const MailIcon = () => (
-  <svg
-    className="h-4 w-4"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 6 9-6" />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"
-    />
-  </svg>
-);
-
 export default function FlyerTemplateShowcase({ formData, images }) {
-  const COLORS = {
-    page: "#ffffff",
-    dark: "#191d24",
-    darkAlt: "#171c24",
-    beige: "#beb491",
-    textMain: "#141414",
-    textBody: "#2e3138",
-    textSection: "#1c1f26",
-    mutedBg: "#ececec",
-    white: "#ffffff",
-    black: "#000000",
-  };
-  const title = cleanText(formData.propertyTitle) || "NEW HOME FOR SALE";
-  const address =
-    cleanText(formData.addressCity) + ", " + cleanText(formData.addressState);
+  const address = joinParts([formData.addressCity, formData.addressState]);
   const description =
     cleanText(formData.description) ||
     "This spacious residence offers a practical floor plan, bright interiors, and quality finishes for modern family living.";
@@ -255,49 +201,35 @@ export default function FlyerTemplateShowcase({ formData, images }) {
                     {agentCompanyName ? `| ${agentCompanyName}` : ""}
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-4 text-[20px]">
-                    {phone ? (
-                      <div className="flex items-center gap-2">
-                        <div style={{ color: COLORS.beige }}>
-                          <PhoneIcon className="h-10 w-10" />
-                        </div>
-                        <span>{phone}</span>
+                    <div className="flex items-center gap-2">
+                      <div style={{ color: COLORS.beige }}>
+                        <PhoneIcon className="h-10 w-10" />
                       </div>
-                    ) : null}
-                    {email ? (
-                      <div className="flex min-w-0 items-center gap-2">
-                        <div style={{ color: COLORS.beige }}>
-                          <MailIcon />
-                        </div>
-                        <span className="max-w-[300px] truncate">{email}</span>
+                      <span>{phone}</span>
+                    </div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div style={{ color: COLORS.beige }}>
+                        <MailIcon />
                       </div>
-                    ) : null}
-                  </div>
-                </div>
-                {qrSrc && (
-                  <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-4">
-                    <div className="text-right"></div>
-
-                    <div className="bg-white p-2 shadow-lg">
-                      <img
-                        src={qrSrc}
-                        alt="QR code"
-                        className="h-[92px] w-[92px]"
-                      />
+                      <span className="max-w-[300px] truncate">{email}</span>
                     </div>
                   </div>
-                )}
-              </div>
-              {agentPhoto ? (
-                <img
-                  src={agentPhoto}
-                  alt="Agent profile"
-                  className="absolute top-0 h-[150px] w-[150px] rounded-full object-cover ring-2 ring-white/20"
-                />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 text-xs">
-                  Agent
                 </div>
-              )}
+                <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-4">
+                  <div className="bg-white p-2">
+                    <img
+                      src={qrSrc}
+                      alt="QR code"
+                      className="h-[92px] w-[92px]"
+                    />
+                  </div>
+                </div>
+              </div>
+              <img
+                src={agentPhoto}
+                alt="Agent profile"
+                className="absolute top-0 h-[150px] w-[150px] rounded-full object-cover ring-2 ring-white/20"
+              />
             </div>
           </div>
         </div>

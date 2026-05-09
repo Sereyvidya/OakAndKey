@@ -32,9 +32,11 @@ export default function GeneralInfoPage() {
   const handleAutofill = (payload) => {
     if (payload?.formData) {
       setFormData(payload.formData);
+
       if (Array.isArray(payload.images)) {
         setImages(payload.images);
       }
+
       return;
     }
 
@@ -52,34 +54,24 @@ export default function GeneralInfoPage() {
   const handleAgentPhotoChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const img = await fileToBase64(file);
     setFormData({ agentPhoto: img });
   };
+
   const handleCompanyLogoChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const img = await fileToBase64(file);
     setFormData({ agentCompanyLogo: img });
   };
 
-  const clearAgentPhoto = () => setFormData({ agentPhoto: null });
-  const clearCompanyLogo = () => setFormData({ agentCompanyLogo: null });
-  const clearImages = () => setImages([]);
-
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-    Promise.all(
-      files.map(
-        (file) =>
-          new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (event) =>
-              resolve({ preview: event.target.result, name: file.name });
-            reader.readAsDataURL(file);
-          })
-      )
-    ).then(addImages);
+    Promise.all(files.map(fileToBase64)).then(addImages);
   };
 
   return (
@@ -91,10 +83,10 @@ export default function GeneralInfoPage() {
       onAutofill={handleAutofill}
       onAgentPhotoChange={handleAgentPhotoChange}
       onCompanyLogoChange={handleCompanyLogoChange}
-      onClearAgentPhoto={clearAgentPhoto}
-      onClearCompanyLogo={clearCompanyLogo}
+      onClearAgentPhoto={() => setFormData({ agentPhoto: null })}
+      onClearCompanyLogo={() => setFormData({ agentCompanyLogo: null })}
       onImageChange={handleImageChange}
-      onClearImages={clearImages}
+      onClearImages={() => setImages([])}
       onRemoveImage={removeImage}
       onSubmit={handleSubmit}
     />
