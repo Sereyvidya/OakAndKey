@@ -100,8 +100,9 @@ const SAMPLE_AUTOFILL = {
   formData: {
     ...SAMPLE_AUTOFILL_FORM,
     agentCompanyLogo: {
-      name: "Logo.png",
-      preview: "/Logo.png",
+      name: "Default Logo",
+      type: "default-svg-logo",
+      preview: "__default_svg_logo__",
     },
     agentPhoto: {
       name: "Headshot.jpg",
@@ -235,7 +236,10 @@ function validateForm(formData, images = []) {
     errors.agentEmail = "Please enter a valid email address.";
   }
 
-  if (!formData.agentCompanyLogo?.preview) {
+  if (
+    !formData.agentCompanyLogo?.preview &&
+    formData.agentCompanyLogo?.type !== "default-svg-logo"
+  ) {
     errors.agentCompanyLogo = "Company logo is required.";
   }
 

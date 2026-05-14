@@ -12,6 +12,7 @@ export function formatPrice(price) {
 }
 
 export function pickSrc(img) {
+  if (img?.type === "default-svg-logo") return "";
   return img?.preview || img?.src || img?.url || "";
 }
 

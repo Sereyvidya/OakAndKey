@@ -7,15 +7,22 @@ import {
   pickSrc,
   joinParts,
 } from "@/app/lib/flyer/format";
-import { FLYER_COLORS as COLORS } from "@/app/lib/flyer/theme";
+import { FLYER_COLORS } from "@/app/lib/flyer/theme";
 import { PhoneIcon, MailIcon } from "./FlyerIcons";
+import DefaultCompanyLogo from "./DefaultCompanyLogo";
 
 const josefin = Josefin_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
 });
 
-export default function FlyerTemplateShowcase({ formData, images }) {
+export default function FlyerTemplateShowcase({
+  formData,
+  images,
+  theme = FLYER_COLORS,
+}) {
+  const COLORS = theme;
+
   const address = joinParts([formData.addressCity, formData.addressState]);
   const description =
     cleanText(formData.description) ||
@@ -40,6 +47,7 @@ export default function FlyerTemplateShowcase({ formData, images }) {
   const email = cleanText(formData.agentEmail);
   const agentPhoto = pickSrc(formData.agentPhoto);
   const companyLogo = pickSrc(formData.agentCompanyLogo);
+  const isDefaultLogo = formData.agentCompanyLogo?.type === "default-svg-logo";
   const qrSrc = socialLink
     ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
         socialLink
@@ -49,20 +57,20 @@ export default function FlyerTemplateShowcase({ formData, images }) {
   return (
     <div
       className={`${josefin.className} absolute inset-0 p-4`}
-      style={{ background: COLORS.page }}
+      style={{ background: COLORS.surface }}
     >
       <div className="flex h-full flex-col">
         {/* Header */}
         <div className="relative h-[105px] w-full">
           <div
             className="absolute top-0 right-0 h-full w-105"
-            style={{ background: COLORS.beige }}
+            style={{ background: COLORS.secondary }}
           />
           <div
-            className={`relative flex h-full items-center px-6 pt-3 text-center text-[40px] font-medium tracking-[0.14em] text-[#beb491] uppercase`}
+            className="relative flex h-full items-center px-6 pt-3 text-center text-[40px] font-medium tracking-[0.14em] uppercase"
             style={{
-              color: COLORS.beige,
-              background: COLORS.dark,
+              color: COLORS.secondary,
+              background: COLORS.primary,
               clipPath: `polygon(0 0, calc(100% - 105px) 0, 100% 100%, 0 100%)`,
             }}
           >
@@ -70,9 +78,8 @@ export default function FlyerTemplateShowcase({ formData, images }) {
           </div>
         </div>
 
-        {/* Hero: use grid (photo left, info right) */}
+        {/* Hero */}
         <div className="relative mt-3 h-140 w-full overflow-hidden">
-          {/* Hero Image */}
           {hero ? (
             <img
               src={hero}
@@ -88,10 +95,10 @@ export default function FlyerTemplateShowcase({ formData, images }) {
             </div>
           )}
 
-          {/* Square Beige Card */}
+          {/* Info Card */}
           <div
             className="absolute right-0 bottom-0 flex aspect-square w-[340px] flex-col justify-center p-6"
-            style={{ background: COLORS.beige, color: COLORS.textMain }}
+            style={{ background: COLORS.secondary, color: COLORS.textMain }}
           >
             <div className="font-regular text-[44px] leading-[1] uppercase">
               NEW HOME FOR SALE
@@ -121,14 +128,17 @@ export default function FlyerTemplateShowcase({ formData, images }) {
         <div className="-mt-10 flex w-120 flex-col gap-3">
           <div
             className="w-full text-center text-[32px] font-semibold tracking-[0.08em] uppercase"
-            style={{ color: COLORS.textSection }}
+            style={{ color: COLORS.primary }}
           >
             Property Overview
           </div>
-          <div className="h-[2px] w-full" style={{ background: COLORS.dark }} />
+          <div
+            className="h-[2px] w-full"
+            style={{ background: COLORS.primary }}
+          />
         </div>
 
-        {/* Thumbnails strip */}
+        {/* Thumbnails */}
         <div className="mt-6 grid h-[250px] grid-cols-3 gap-3">
           {[t1, t2, t3].map((src, idx) => (
             <div
@@ -164,20 +174,33 @@ export default function FlyerTemplateShowcase({ formData, images }) {
               {description}
             </p>
           </div>
+
           <div
-            className="grid h-[150px] grid-cols-[220px_1fr] items-stretch text-white"
-            style={{ color: COLORS.white }}
+            className="grid h-[150px] grid-cols-[220px_1fr] items-stretch"
+            style={{ color: COLORS.surface }}
           >
-            <div className="flex items-center justify-center bg-white">
+            <div
+              className="flex items-center justify-center"
+              style={{ background: COLORS.surface }}
+            >
               <div className="flex h-[150px] w-full items-center justify-center">
-                {companyLogo ? (
+                {isDefaultLogo ? (
+                  <DefaultCompanyLogo
+                    primary={COLORS.primary}
+                    secondary={COLORS.secondary}
+                    className="h-full w-full"
+                  />
+                ) : companyLogo ? (
                   <img
                     src={companyLogo}
                     alt="Company logo"
                     className="max-h-full max-w-full object-contain"
                   />
                 ) : (
-                  <div className="text-center text-sm font-semibold text-black/60 uppercase">
+                  <div
+                    className="text-center text-sm font-semibold uppercase"
+                    style={{ color: `${COLORS.black}99` }}
+                  >
                     {agentCompanyName || "Company Logo"}
                   </div>
                 )}
@@ -187,36 +210,43 @@ export default function FlyerTemplateShowcase({ formData, images }) {
             <div className="relative">
               <div
                 className="absolute right-0 bottom-0 left-[75px] h-[130px] min-w-0 pl-25"
-                style={{ background: COLORS.darkAlt }}
+                style={{ background: COLORS.primary }}
               >
                 <div className="flex h-[130px] w-full flex-col py-2">
                   <div
                     className="truncate text-[36px] font-semibold"
-                    style={{ color: COLORS.beige }}
+                    style={{ color: COLORS.secondary }}
                   >
                     {agentName}
                   </div>
-                  <div className="text-[14px] tracking-wide text-white uppercase">
+
+                  <div
+                    className="text-[14px] tracking-wide uppercase"
+                    style={{ color: COLORS.surface }}
+                  >
                     RESIDENTIAL SPECIALIST{" "}
                     {agentCompanyName ? `| ${agentCompanyName}` : ""}
                   </div>
+
                   <div className="mt-2 flex flex-wrap items-center gap-4 text-[20px]">
                     <div className="flex items-center gap-2">
-                      <div style={{ color: COLORS.beige }}>
+                      <div style={{ color: COLORS.secondary }}>
                         <PhoneIcon className="h-10 w-10" />
                       </div>
                       <span>{phone}</span>
                     </div>
+
                     <div className="flex min-w-0 items-center gap-2">
-                      <div style={{ color: COLORS.beige }}>
+                      <div style={{ color: COLORS.secondary }}>
                         <MailIcon />
                       </div>
                       <span className="max-w-[300px] truncate">{email}</span>
                     </div>
                   </div>
                 </div>
+
                 <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-4">
-                  <div className="bg-white p-2">
+                  <div style={{ background: COLORS.surface }} className="p-2">
                     <img
                       src={qrSrc}
                       alt="QR code"
@@ -225,6 +255,7 @@ export default function FlyerTemplateShowcase({ formData, images }) {
                   </div>
                 </div>
               </div>
+
               <img
                 src={agentPhoto}
                 alt="Agent profile"

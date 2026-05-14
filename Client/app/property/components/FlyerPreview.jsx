@@ -13,7 +13,7 @@ const CANVAS = {
 const PREVIEW_ZOOM = 1;
 
 const FlyerPreview = forwardRef(function FlyerPreview(
-  { formData, images, template = "hero" },
+  { formData, images, template = "hero", theme },
   exportRef
 ) {
   const containerRef = useRef(null);
@@ -66,7 +66,7 @@ const FlyerPreview = forwardRef(function FlyerPreview(
             className="h-full w-full overflow-hidden bg-white"
           >
             <div className="relative h-full w-full">
-              <Template formData={formData} images={images} />
+              <Template formData={formData} images={images} theme={theme} />
             </div>
           </div>
         </div>
