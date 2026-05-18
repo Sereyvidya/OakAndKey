@@ -243,10 +243,14 @@ function validateForm(formData, images = []) {
     errors.agentCompanyLogo = "Company logo is required.";
   }
 
-  if (!formData.agentPhoto?.preview) {
+  const agentPhotoPreview =
+    typeof formData.agentPhoto === "string"
+      ? formData.agentPhoto
+      : formData.agentPhoto?.preview || "";
+
+  if (!agentPhotoPreview) {
     errors.agentPhoto = "Agent photo is required.";
   }
-
   return errors;
 }
 
