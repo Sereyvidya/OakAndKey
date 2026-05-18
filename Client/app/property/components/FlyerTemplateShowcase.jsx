@@ -256,11 +256,13 @@ export default function FlyerTemplateShowcase({
                 </div>
               </div>
 
-              <img
-                src={agentPhoto}
-                alt="Agent profile"
-                className="absolute top-0 h-[150px] w-[150px] rounded-full object-cover ring-2 ring-white/20"
-              />
+              {agentPhoto && (
+                <img
+                  src={agentPhoto}
+                  alt="Agent profile"
+                  className="absolute top-0 left-0 h-[150px] w-[150px] rounded-full object-cover ring-2 ring-white/20"
+                />
+              )}
             </div>
           </div>
         </div>
