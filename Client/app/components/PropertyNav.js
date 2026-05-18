@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const nav = [
-  { href: "/property/general", label: "General Information" },
-  { href: "/property/flyer", label: "Flyer Builder" },
-  { href: "/property/captions", label: "Social Captions" },
+  { href: "/property/general", label: "Information" },
+  { href: "/property/flyer", label: "Flyer" },
+  { href: "/property/captions", label: "Captions" },
 ];
 
 export default function PropertyNav() {
