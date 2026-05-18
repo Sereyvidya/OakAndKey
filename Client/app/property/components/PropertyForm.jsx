@@ -105,26 +105,26 @@ const SAMPLE_AUTOFILL = {
       preview: "__default_svg_logo__",
     },
     agentPhoto: {
-      name: "Headshot.jpg",
-      preview: "/Headshot.jpg",
+      name: "headshot.jpg",
+      preview: "/headshot.jpg",
     },
   },
   images: [
     {
-      name: "Dining.jpg",
-      preview: "/Dining.jpg",
+      name: "dining.jpg",
+      preview: "/dining.jpg",
     },
     {
-      name: "Entry.jpg",
-      preview: "/Entry.jpg",
+      name: "entry.jpg",
+      preview: "/entry.jpg",
     },
     {
-      name: "Lawn.jpg",
-      preview: "/Lawn.jpg",
+      name: "lawn.jpg",
+      preview: "/lawn.jpg",
     },
     {
-      name: "Living Room.jpg",
-      preview: "/Living Room.jpg",
+      name: "living-room.jpg",
+      preview: "/living-room.jpg",
     },
   ],
 };
