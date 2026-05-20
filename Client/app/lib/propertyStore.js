@@ -86,6 +86,17 @@ export const usePropertyStore = create((set) => ({
   removeImage: (index) =>
     set((state) => ({ images: state.images.filter((_, i) => i !== index) })),
 
+  reorderImages: (fromIndex, toIndex) =>
+    set((state) => {
+      const nextImages = [...state.images];
+
+      const [movedImage] = nextImages.splice(fromIndex, 1);
+
+      nextImages.splice(toIndex, 0, movedImage);
+
+      return { images: nextImages };
+    }),
+
   reset: () =>
     set({
       formData: initialFormData,

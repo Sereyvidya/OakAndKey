@@ -1,5 +1,3 @@
-import { cleanText } from "./format";
-
 export const TEXT_FIELDS_BY_TEMPLATE = {
   showcase: [
     {
@@ -107,11 +105,3 @@ export const TEXT_FIELDS_BY_TEMPLATE = {
     },
   ],
 };
-
-export function getTemplateCopyText(copy, field) {
-  return cleanText(copy?.[field.key]?.text) || field.defaultValue;
-}
-
-export function getTemplateCopySize(copy, field) {
-  return copy?.[field.key]?.size ?? field.defaultSize;
-}
