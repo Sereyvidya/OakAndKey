@@ -13,15 +13,15 @@ const CANVAS = {
 const PREVIEW_ZOOM = 1;
 
 const FlyerPreview = forwardRef(function FlyerPreview(
-  { formData, images, template = "hero", theme },
+  { formData, images, template = "showcase", theme, templateCopy },
   exportRef
 ) {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
 
   const Template = useMemo(() => {
-    if (template === "grid") return FlyerTemplateGallery;
-    if (template === "minimal") return FlyerTemplateMinimalistic;
+    if (template === "gallery") return FlyerTemplateGallery;
+    if (template === "modern") return FlyerTemplateMinimalistic;
     return FlyerTemplateShowcase;
   }, [template]);
 
@@ -66,7 +66,12 @@ const FlyerPreview = forwardRef(function FlyerPreview(
             className="h-full w-full overflow-hidden bg-white"
           >
             <div className="relative h-full w-full">
-              <Template formData={formData} images={images} theme={theme} />
+              <Template
+                formData={formData}
+                images={images}
+                theme={theme}
+                templateCopy={templateCopy}
+              />
             </div>
           </div>
         </div>

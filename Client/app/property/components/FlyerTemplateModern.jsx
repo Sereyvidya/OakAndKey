@@ -22,8 +22,38 @@ export default function FlyerTemplateModern({
   formData,
   images,
   theme = FLYER_COLORS,
+  templateCopy = {},
 }) {
   const COLORS = theme;
+  const copy = templateCopy?.modern || {};
+
+  const headlineSmall = cleanText(copy.headlineSmall?.text) || "Modern Home";
+  const headlineSmallSize = copy.headlineSmall?.size || 64;
+
+  const headlineLarge = cleanText(copy.headlineLarge?.text) || "For Sale";
+  const headlineLargeSize = copy.headlineLarge?.size || 78;
+
+  const tagline =
+    cleanText(copy.tagline?.text) || "A Home That Fits Your Lifestyle";
+  const taglineSize = copy.tagline?.size || 32;
+
+  const taglineBody =
+    cleanText(copy.taglineBody?.text) ||
+    "Enjoy spacious interiors, modern touches, and a layout designed for convenience and comfort.";
+  const taglineBodySize = copy.taglineBody?.size || 19;
+
+  const aboutTitle = cleanText(copy.aboutTitle?.text) || "About The Property";
+  const aboutTitleSize = copy.aboutTitle?.size || 30;
+
+  const priceLabel = cleanText(copy.priceLabel?.text) || "Offered At";
+  const priceLabelSize = copy.priceLabel?.size || 30;
+
+  const appointmentLabel =
+    cleanText(copy.appointmentLabel?.text) || "Call for appointment";
+  const appointmentLabelSize = copy.appointmentLabel?.size || 12;
+
+  const agentRole = cleanText(copy.agentRole?.text) || "Residential Specialist";
+  const agentRoleSize = copy.agentRole?.size || 14;
 
   const address =
     joinParts([formData.addressCity, formData.addressState]) || "Austin, TX";
@@ -88,7 +118,6 @@ export default function FlyerTemplateModern({
           />
         </div>
 
-        {/* Logo block */}
         {/* Logo block */}
         <div
           className="absolute top-22 left-8 z-30 flex h-[150px] w-[150px] items-center justify-center rounded-lg p-2"
@@ -156,16 +185,22 @@ export default function FlyerTemplateModern({
         >
           <div className="w-fit">
             <div
-              className="text-[64px] leading-[0.95] font-normal"
-              style={{ color: COLORS.primary }}
+              className="leading-[0.95] font-normal"
+              style={{
+                color: COLORS.primary,
+                fontSize: `${headlineSmallSize}px`,
+              }}
             >
-              Modern Home
+              {headlineSmall}
             </div>
             <div
-              className="text-[78px] leading-[0.95] font-bold tracking-tight uppercase"
-              style={{ color: COLORS.primary }}
+              className="leading-[0.95] font-bold tracking-tight uppercase"
+              style={{
+                color: COLORS.primary,
+                fontSize: `${headlineLargeSize}px`,
+              }}
             >
-              FOR SALE
+              {headlineLarge}
             </div>
           </div>
         </div>
@@ -173,19 +208,22 @@ export default function FlyerTemplateModern({
         {/* Intro text */}
         <div className="absolute top-[480px] left-14 z-30 w-[285px]">
           <h2
-            className="text-[32px] leading-[1.05] font-bold"
-            style={{ color: COLORS.textMain }}
+            className="leading-[1.05] font-bold whitespace-pre-line"
+            style={{
+              color: COLORS.textMain,
+              fontSize: `${taglineSize}px`,
+            }}
           >
-            A Home That Fits
-            <br />
-            Your Lifestyle
+            {tagline}
           </h2>
           <p
-            className="mt-3 text-[19px] font-semibold"
-            style={{ color: COLORS.textBody }}
+            className="mt-3 font-semibold"
+            style={{
+              color: COLORS.textBody,
+              fontSize: `${taglineBodySize}px`,
+            }}
           >
-            Enjoy spacious interiors, modern touches, and a layout designed for
-            convenience and comfort.
+            {taglineBody}
           </p>
         </div>
 
@@ -206,7 +244,14 @@ export default function FlyerTemplateModern({
           <div className="absolute inset-0 bg-black/60" />
 
           <div className="relative z-10 px-8 py-6">
-            <div className="text-[30px] font-bold uppercase">Offered At</div>
+            <div
+              className="font-bold uppercase"
+              style={{
+                fontSize: `${priceLabelSize}px`,
+              }}
+            >
+              {priceLabel}
+            </div>
             <div
               className="mt-1 text-[60px] leading-none font-bold"
               style={{ color: COLORS.secondary }}
@@ -280,10 +325,13 @@ export default function FlyerTemplateModern({
         {/* About property */}
         <div className="absolute top-[1060px] right-8 left-8 z-20">
           <h3
-            className="text-[30px] font-extrabold"
-            style={{ color: COLORS.primary }}
+            className="font-extrabold"
+            style={{
+              color: COLORS.primary,
+              fontSize: `${aboutTitleSize}px`,
+            }}
           >
-            About The Property
+            {aboutTitle}
           </h3>
           <p
             className="w-[70%] text-[17px] leading-[1.5] font-semibold"
@@ -318,10 +366,13 @@ export default function FlyerTemplateModern({
                 {agentName}
               </div>
               <div
-                className="text-[14px] tracking-wide uppercase"
-                style={{ color: COLORS.primary }}
+                className="tracking-wide uppercase"
+                style={{
+                  color: COLORS.primary,
+                  fontSize: `${agentRoleSize}px`,
+                }}
               >
-                RESIDENTIAL SPECIALIST
+                {agentRole}
               </div>
             </div>
           </div>
@@ -337,8 +388,13 @@ export default function FlyerTemplateModern({
               className="flex flex-col justify-center leading-[1.15]"
               style={{ color: COLORS.primary }}
             >
-              <div className="ml-1 text-[12px] font-semibold uppercase">
-                Call for appointment
+              <div
+                className="ml-1 font-semibold uppercase"
+                style={{
+                  fontSize: `${appointmentLabelSize}px`,
+                }}
+              >
+                {appointmentLabel}
               </div>
               <div className="text-[28px] font-bold">{phone}</div>
             </div>

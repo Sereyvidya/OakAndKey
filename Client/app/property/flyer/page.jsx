@@ -11,17 +11,20 @@ import { exportFlyerPNG } from "@/app/lib/flyer/export";
 import { buildFlyerTheme } from "@/app/lib/flyer/theme";
 
 const TEMPLATES = [
-  { key: "hero", label: "Showcase" },
-  { key: "grid", label: "Gallery" },
-  { key: "minimal", label: "Modern" },
+  { key: "showcase", label: "Showcase" },
+  { key: "gallery", label: "Gallery" },
+  { key: "modern", label: "Modern" },
 ];
+
 const SUPPORTED_RESIDENTIAL_TYPES = new Set(["house", "condo"]);
 
 export default function FlyerPage() {
-  const [template, setTemplate] = useState("hero");
+  const [template, setTemplate] = useState("showcase");
   const [themePreset, setThemePreset] = useState("classic");
 
   const [customThemes, setCustomThemes] = useState([]);
+
+  const [templateCopy, setTemplateCopy] = useState({});
 
   const flyerTheme = useMemo(() => {
     const custom = customThemes.find((theme) => theme.key === themePreset);
@@ -115,6 +118,8 @@ export default function FlyerPage() {
           templates={TEMPLATES}
           onExportPNG={exportPNG}
           isExportingPNG={isExportingPNG}
+          templateCopy={templateCopy}
+          setTemplateCopy={setTemplateCopy}
         />
 
         <section className="min-w-0">
@@ -126,6 +131,7 @@ export default function FlyerPage() {
                 template={template}
                 theme={flyerTheme}
                 ref={flyerRef}
+                templateCopy={templateCopy}
               />
             </div>
           </div>

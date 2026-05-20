@@ -20,8 +20,20 @@ export default function FlyerTemplateShowcase({
   formData,
   images,
   theme = FLYER_COLORS,
+  templateCopy = {},
 }) {
   const COLORS = theme;
+  const copy = templateCopy?.showcase || {};
+
+  const headline = cleanText(copy.headline?.text) || "New Home For Sale";
+  const headlineSize = copy.headline?.size || 44;
+
+  const sectionTitle =
+    cleanText(copy.sectionTitle?.text) || "Property Overview";
+  const sectionTitleSize = copy.sectionTitle?.size || 32;
+
+  const agentRole = cleanText(copy.agentRole?.text) || "Residential Specialist";
+  const agentRoleSize = copy.agentRole?.size || 14;
 
   const address = joinParts([formData.addressCity, formData.addressState]);
   const description =
@@ -100,8 +112,11 @@ export default function FlyerTemplateShowcase({
             className="absolute right-0 bottom-0 flex aspect-square w-[340px] flex-col justify-center p-6"
             style={{ background: COLORS.secondary, color: COLORS.textMain }}
           >
-            <div className="font-regular text-[44px] leading-[1] uppercase">
-              NEW HOME FOR SALE
+            <div
+              className="font-regular leading-[1] uppercase"
+              style={{ fontSize: `${headlineSize}px` }}
+            >
+              {headline}
             </div>
 
             <div className="font-regular mt-2 text-[30px] tracking-wide uppercase">
@@ -127,10 +142,13 @@ export default function FlyerTemplateShowcase({
         {/* Section title line */}
         <div className="-mt-10 flex w-120 flex-col gap-3">
           <div
-            className="w-full text-center text-[32px] font-semibold tracking-[0.08em] uppercase"
-            style={{ color: COLORS.primary }}
+            className="w-full text-center font-semibold tracking-[0.08em] uppercase"
+            style={{
+              color: COLORS.primary,
+              fontSize: `${sectionTitleSize}px`,
+            }}
           >
-            Property Overview
+            {sectionTitle}
           </div>
           <div
             className="h-[2px] w-full"
@@ -221,11 +239,13 @@ export default function FlyerTemplateShowcase({
                   </div>
 
                   <div
-                    className="text-[14px] tracking-wide uppercase"
-                    style={{ color: COLORS.surface }}
+                    className="tracking-wide uppercase"
+                    style={{
+                      color: COLORS.surface,
+                      fontSize: `${agentRoleSize}px`,
+                    }}
                   >
-                    RESIDENTIAL SPECIALIST{" "}
-                    {agentCompanyName ? `| ${agentCompanyName}` : ""}
+                    {agentRole} | {agentCompanyName}
                   </div>
 
                   <div className="mt-2 flex flex-wrap items-center gap-4 text-[20px]">

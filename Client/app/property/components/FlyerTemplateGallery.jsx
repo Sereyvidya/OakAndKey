@@ -20,8 +20,25 @@ export default function FlyerTemplateGallery({
   formData,
   images,
   theme = FLYER_COLORS,
+  templateCopy = {},
 }) {
   const COLORS = theme;
+  const copy = templateCopy?.gallery || {};
+
+  const priceLabel = cleanText(copy.priceLabel?.text) || "Offered at";
+  const priceLabelSize = copy.priceLabel?.size || 20;
+
+  const headlineScript = cleanText(copy.headlineScript?.text) || "New";
+  const headlineScriptSize = copy.headlineScript?.size || 100;
+
+  const headlineMain = cleanText(copy.headlineMain?.text) || "Listing";
+  const headlineMainSize = copy.headlineMain?.size || 70;
+
+  const propertyTitle = cleanText(copy.propertyTitle?.text) || "The Property";
+  const propertyTitleSize = copy.propertyTitle?.size || 46;
+
+  const agentRole = cleanText(copy.agentRole?.text) || "Residential Specialist";
+  const agentRoleSize = copy.agentRole?.size || 14;
 
   const address = joinParts([formData.addressCity, formData.addressState]);
   const fullAddress = cleanText(formData.address) || address;
@@ -160,10 +177,13 @@ export default function FlyerTemplateGallery({
         {/* Left content */}
         <div className="absolute top-[300px] left-[115px] z-20 inline-block -translate-x-1/2 text-center">
           <div
-            className="text-[20px] leading-none"
-            style={{ color: COLORS.surface }}
+            className="leading-none"
+            style={{
+              color: COLORS.surface,
+              fontSize: `${priceLabelSize}px`,
+            }}
           >
-            Offered at
+            {priceLabel}
           </div>
           <div
             className="mt-3 text-[44px] leading-none font-semibold whitespace-nowrap"
@@ -175,17 +195,24 @@ export default function FlyerTemplateGallery({
 
         <div className="absolute top-[510px] left-[50px] z-20 w-[470px]">
           <div
-            className="mt-16 text-[100px] leading-[0.75] italic"
-            style={{ color: COLORS.secondary, fontFamily: "Georgia, serif" }}
+            className="mt-16 leading-[0.75] italic"
+            style={{
+              color: COLORS.secondary,
+              fontFamily: "Georgia, serif",
+              fontSize: `${headlineScriptSize}px`,
+            }}
           >
-            New
+            {headlineScript}
           </div>
 
           <div
-            className="mt-3 text-[70px] leading-[0.82] tracking-[0.04em] uppercase"
-            style={{ color: COLORS.surface }}
+            className="mt-3 leading-[0.82] tracking-[0.04em] uppercase"
+            style={{
+              color: COLORS.surface,
+              fontSize: `${headlineMainSize}px`,
+            }}
           >
-            Listing
+            {headlineMain}
           </div>
 
           <div
@@ -201,13 +228,14 @@ export default function FlyerTemplateGallery({
           <div className="grid grid-cols-[300px_640px]">
             <div className="flex flex-col justify-center gap-3">
               <div
-                className="text-[46px] leading-none whitespace-nowrap italic"
+                className="leading-none whitespace-nowrap italic"
                 style={{
                   color: COLORS.surface,
                   fontFamily: "Georgia, serif",
+                  fontSize: `${propertyTitleSize}px`,
                 }}
               >
-                The Property
+                {propertyTitle}
               </div>
 
               <div
@@ -292,11 +320,13 @@ export default function FlyerTemplateGallery({
               </div>
 
               <div
-                className="text-[14px] tracking-wide uppercase"
-                style={{ color: COLORS.surface }}
+                className="tracking-wide uppercase"
+                style={{
+                  color: COLORS.surface,
+                  fontSize: `${agentRoleSize}px`,
+                }}
               >
-                RESIDENTIAL SPECIALIST{" "}
-                {agentCompanyName ? `| ${agentCompanyName}` : ""}
+                {agentRole} | {agentCompanyName}
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-4 text-[20px]">

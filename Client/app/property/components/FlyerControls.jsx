@@ -3,6 +3,8 @@
 import { useState } from "react";
 import InlineSpinner from "./InlineSpinner";
 import { buildFlyerTheme, FLYER_THEME_PRESETS } from "@/app/lib/flyer/theme";
+import { TEXT_FIELDS_BY_TEMPLATE } from "@/app/lib/flyer/templateCopy";
+import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 export default function FlyerControls({
   template,
@@ -14,6 +16,8 @@ export default function FlyerControls({
   templates,
   onExportPNG,
   isExportingPNG,
+  templateCopy = {},
+  setTemplateCopy,
 }) {
   const [showCustomTheme, setShowCustomTheme] = useState(false);
 
@@ -49,6 +53,27 @@ export default function FlyerControls({
     setCustomThemes((prev) => [...prev, newTheme]);
     setThemePreset(newTheme.key);
     setShowCustomTheme(false);
+  };
+
+  const activeTextFields = TEXT_FIELDS_BY_TEMPLATE[template] || [];
+
+  const updateTextField = (field, nextValue) => {
+    setTemplateCopy((prev) => ({
+      ...prev,
+      [template]: {
+        ...prev[template],
+        [field.key]: {
+          text:
+            nextValue.text ??
+            prev?.[template]?.[field.key]?.text ??
+            field.defaultValue,
+          size:
+            nextValue.size ??
+            prev?.[template]?.[field.key]?.size ??
+            field.defaultSize,
+        },
+      },
+    }));
   };
 
   return (
@@ -182,6 +207,74 @@ export default function FlyerControls({
               >
                 {label}
               </button>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-3 text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
+            Text
+          </div>
+
+          <div className="space-y-3">
+            {activeTextFields.map((field) => (
+              <label key={field.key} className="block">
+                <span className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]">
+                  {field.label}
+                </span>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={
+                      templateCopy?.[template]?.[field.key]?.text ??
+                      field.defaultValue
+                    }
+                    onChange={(e) =>
+                      updateTextField(field, {
+                        text: e.target.value,
+                      })
+                    }
+                    className={[
+                      "w-full rounded-xl border bg-[color:var(--field-bg)] px-3 py-2 pr-10 text-sm text-[color:var(--ink-base)] transition outline-none",
+                      "border-[var(--field-border)]",
+                      "focus:border-[var(--brand)] focus:bg-[color:var(--surface-soft)] focus:ring-2 focus:ring-[var(--brand)]",
+                    ].join(" ")}
+                  />
+
+                  <div className="absolute top-1/2 right-3 flex -translate-y-1/2 flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateTextField(field, {
+                          size:
+                            (templateCopy?.[template]?.[field.key]?.size ??
+                              field.defaultSize) + 2,
+                        })
+                      }
+                      className="text-[11px] leading-none text-[var(--brand)] hover:text-[var(--brand-strong)]"
+                    >
+                      <FiChevronUp className="h-3.5 w-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateTextField(field, {
+                          size: Math.max(
+                            10,
+                            (templateCopy?.[template]?.[field.key]?.size ??
+                              field.defaultSize) - 2
+                          ),
+                        })
+                      }
+                      className="-mt-1 text-[11px] leading-none text-[var(--brand)] hover:text-[var(--brand-strong)]"
+                    >
+                      <FiChevronDown className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </label>
             ))}
           </div>
         </section>
