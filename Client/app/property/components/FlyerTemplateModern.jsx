@@ -282,7 +282,7 @@ export default function FlyerTemplateModern({
           }}
         >
           <div
-            className="overflow-hidden"
+            className="h-full w-full overflow-hidden"
             style={{
               clipPath: "polygon(0 0, 70% 0, 100% 100%, 30% 100%)",
               transform: "scale(0.92)",

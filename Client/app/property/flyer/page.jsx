@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import FlyerPreview from "../components/FlyerPreview";
 import FlyerControls from "../components/FlyerControls";
-import { hasMinimumFlyerData } from "@/app/lib/flyer/guards";
+import { hasCompleteFlyerData } from "@/app/lib/flyer/guards";
 import { makeSafeFilename } from "@/app/lib/flyer/filename";
 import { exportFlyerPNG } from "@/app/lib/flyer/export";
 import { buildFlyerTheme } from "@/app/lib/flyer/theme";
@@ -40,7 +40,7 @@ export default function FlyerPage() {
   const [isExportingPNG, setIsExportingPNG] = useState(false);
 
   const hasData = useMemo(
-    () => hasMinimumFlyerData({ formData, images }),
+    () => hasCompleteFlyerData({ formData, images }),
     [formData, images]
   );
   const hasUnsupportedType = useMemo(() => {
@@ -70,7 +70,8 @@ export default function FlyerPage() {
           Flyer Builder
         </h1>
         <p className="mb-6 text-[color:var(--ink-soft)]">
-          No listing data yet. Start with General Info.
+          Complete all required fields in General Information to build your
+          flyer.
         </p>
         <Link
           href="/property/general"
