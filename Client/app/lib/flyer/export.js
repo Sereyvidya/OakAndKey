@@ -11,6 +11,9 @@ export async function exportFlyerPNG(node, { filename }) {
 }
 
 export async function exportFlyerPDF(node, { filename }) {
+  const width = node.offsetWidth;
+  const height = node.offsetHeight;
+
   const dataUrl = await toPng(node, {
     backgroundColor: "#ffffff",
     pixelRatio: 3,
@@ -19,10 +22,10 @@ export async function exportFlyerPDF(node, { filename }) {
   const pdf = new jsPDF({
     orientation: "portrait",
     unit: "px",
-    format: [node.offsetWidth, node.offsetHeight],
+    format: [width, height],
   });
 
-  pdf.addImage(dataUrl, "PNG", 0, 0);
+  pdf.addImage(dataUrl, "PNG", 0, 0, width, height);
   pdf.save(`${filename}.pdf`);
 }
 

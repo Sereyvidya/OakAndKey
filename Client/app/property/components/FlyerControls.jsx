@@ -4,7 +4,7 @@ import { useState } from "react";
 import InlineSpinner from "./InlineSpinner";
 import { buildFlyerTheme, FLYER_THEME_PRESETS } from "@/app/lib/flyer/theme";
 import { TEXT_FIELDS_BY_TEMPLATE } from "@/app/lib/flyer/templateCopy";
-import { FiChevronUp, FiChevronDown } from "react-icons/fi";
+import { FiChevronUp, FiChevronDown, FiDownload } from "react-icons/fi";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 
 export default function FlyerControls({
@@ -17,6 +17,8 @@ export default function FlyerControls({
   templates,
   onExportPNG,
   isExportingPNG,
+  onExportPDF,
+  isExportingPDF,
   templateCopy = {},
   setTemplateCopy,
 }) {
@@ -24,6 +26,7 @@ export default function FlyerControls({
   const [showColors, setShowColors] = useState(true);
   const [showTextControls, setShowTextControls] = useState(true);
   const [showPhotos, setShowPhotos] = useState(true);
+  const [exportType, setExportType] = useState("png");
 
   const images = usePropertyStore((s) => s.images);
   const reorderImages = usePropertyStore((s) => s.reorderImages);
@@ -373,14 +376,55 @@ export default function FlyerControls({
           )}
         </section>
 
-        <button
-          type="button"
-          onClick={onExportPNG}
-          disabled={isExportingPNG}
-          className="hover-lift flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-3 font-semibold text-[#0b0f14] hover:bg-[var(--brand-strong)] disabled:opacity-60"
-        >
-          {isExportingPNG ? <InlineSpinner /> : "Download PNG"}
-        </button>
+        <section>
+          <div className="flex-col items-center justify-between space-y-3">
+            <div className="text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
+              Download
+            </div>
+            <div className="grid grid-cols-[1fr_1fr_56px] gap-2">
+              <button
+                type="button"
+                onClick={() => setExportType("png")}
+                className={[
+                  "hover-lift rounded-xl px-3 py-3 text-sm font-semibold transition",
+                  exportType === "png"
+                    ? "bg-[var(--brand)] text-[#0b0f14]"
+                    : "border border-[var(--field-border)] text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
+                ].join(" ")}
+              >
+                PNG
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setExportType("pdf")}
+                className={[
+                  "hover-lift rounded-xl px-3 py-3 text-sm font-semibold transition",
+                  exportType === "pdf"
+                    ? "bg-[var(--brand)] text-[#0b0f14]"
+                    : "border border-[var(--field-border)] text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
+                ].join(" ")}
+              >
+                PDF
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  exportType === "pdf" ? onExportPDF() : onExportPNG()
+                }
+                disabled={isExportingPNG || isExportingPDF}
+                className="hover-lift flex items-center justify-center rounded-xl bg-[var(--brand)] text-[#0b0f14] transition hover:bg-[var(--brand-strong)] disabled:opacity-60"
+              >
+                {isExportingPNG || isExportingPDF ? (
+                  <InlineSpinner />
+                ) : (
+                  <FiDownload className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
     </aside>
   );

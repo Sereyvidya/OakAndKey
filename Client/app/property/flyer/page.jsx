@@ -7,7 +7,7 @@ import FlyerPreview from "../components/FlyerPreview";
 import FlyerControls from "../components/FlyerControls";
 import { hasCompleteFlyerData } from "@/app/lib/flyer/guards";
 import { makeSafeFilename } from "@/app/lib/flyer/filename";
-import { exportFlyerPNG } from "@/app/lib/flyer/export";
+import { exportFlyerPNG, exportFlyerPDF } from "@/app/lib/flyer/export";
 import { buildFlyerTheme } from "@/app/lib/flyer/theme";
 
 const TEMPLATES = [
@@ -38,6 +38,7 @@ export default function FlyerPage() {
 
   const flyerRef = useRef(null);
   const [isExportingPNG, setIsExportingPNG] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   const hasData = useMemo(
     () => hasCompleteFlyerData({ formData, images }),
@@ -60,6 +61,17 @@ export default function FlyerPage() {
       await exportFlyerPNG(flyerRef.current, { filename: safeFileBase });
     } finally {
       setIsExportingPNG(false);
+    }
+  };
+
+  const exportPDF = async () => {
+    if (!flyerRef.current) return;
+
+    try {
+      setIsExportingPDF(true);
+      await exportFlyerPDF(flyerRef.current, { filename: safeFileBase });
+    } finally {
+      setIsExportingPDF(false);
     }
   };
 
@@ -119,6 +131,8 @@ export default function FlyerPage() {
           templates={TEMPLATES}
           onExportPNG={exportPNG}
           isExportingPNG={isExportingPNG}
+          onExportPDF={exportPDF}
+          isExportingPDF={isExportingPDF}
           templateCopy={templateCopy}
           setTemplateCopy={setTemplateCopy}
         />
