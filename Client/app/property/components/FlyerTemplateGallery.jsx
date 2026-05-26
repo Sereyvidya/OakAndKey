@@ -55,6 +55,7 @@ export default function FlyerTemplateGallery({
   const beds = formData.bedrooms !== "" ? Number(formData.bedrooms) : null;
   const baths = formData.bathrooms !== "" ? Number(formData.bathrooms) : null;
   const size = formData.size !== "" ? Number(formData.size) : null;
+  const sizeUnit = formData.sizeUnit;
 
   const gallery = (images || []).map(pickSrc).filter(Boolean);
   const hero = gallery[0] || "";
@@ -243,7 +244,7 @@ export default function FlyerTemplateGallery({
                 className="text-[18px] tracking-[0.03em] whitespace-nowrap uppercase"
                 style={{ color: COLORS.secondary }}
               >
-                {beds} Bed | {baths} Bath | {size ? `${size} SQM` : "SIZE N/A"}
+                {beds} Bed | {baths} Bath | {size} {sizeUnit}
               </div>
             </div>
 

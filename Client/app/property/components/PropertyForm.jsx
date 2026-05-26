@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { LuRefreshCcw } from "react-icons/lu";
 import { propertyTypes } from "../constants/propertyTypes";
 import { composeAddress, splitAddressParts } from "../../lib/address";
 import {
@@ -86,7 +87,8 @@ const SAMPLE_AUTOFILL_FORM = {
   propertyType: "house",
   bedrooms: "4",
   bathrooms: "3",
-  size: "245",
+  size: "2637",
+  sizeUnit: "sqft",
   description:
     "Beautifully updated 4-bedroom, 3-bath home in North Austin with an open-concept living area, a large island kitchen, and abundant natural light. The primary suite includes a walk-in closet and spa-style bath, while the fenced backyard and covered patio are perfect for entertaining. Minutes from top schools, parks, and major commuter routes.",
   agentName: "John Carter",
@@ -966,12 +968,32 @@ export default function PropertyForm({
               </div>
 
               <div>
-                <label
-                  htmlFor="size"
-                  className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
-                >
-                  Size (sqm)
-                </label>
+                <div className="mb-1 flex items-center gap-2">
+                  <label
+                    htmlFor="size"
+                    className="block text-sm font-medium text-[color:var(--ink-base)]"
+                  >
+                    Size ({formData.sizeUnit === "sqft" ? "sqft" : "sqm"})
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onInputChange({
+                        target: {
+                          name: "sizeUnit",
+                          value: formData.sizeUnit === "sqft" ? "sqm" : "sqft",
+                        },
+                      })
+                    }
+                    className="rounded-md p-1 text-[color:var(--ink-soft)] transition hover:bg-[color:var(--surface-soft)] hover:text-[color:var(--ink-strong)]"
+                    aria-label="Toggle size unit"
+                    title="Toggle sqm / sq ft"
+                  >
+                    <LuRefreshCcw className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
                 <InputWithIcon
                   icon={Ruler}
                   hasError={hasSubmitted && errors.size}
@@ -983,13 +1005,14 @@ export default function PropertyForm({
                     value: formData.size,
                     onChange: onInputChange,
                     onWheel: (e) => e.currentTarget.blur(),
-                    placeholder: SAMPLE_AUTOFILL_FORM.size,
+                    placeholder:
+                      formData.sizeUnit === "sqft"
+                        ? "2637"
+                        : SAMPLE_AUTOFILL_FORM.size,
                     min: "0",
                     step: "1",
                   }}
                 />
-
-                <ErrorText>{hasSubmitted ? errors.size : ""}</ErrorText>
               </div>
             </div>
 

@@ -14,6 +14,7 @@ const initialFormData = {
   bedrooms: "",
   bathrooms: "",
   size: "",
+  sizeUnit: "sqm",
   description: "",
   agentName: "",
   agentCompanyName: "",

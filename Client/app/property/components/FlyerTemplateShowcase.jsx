@@ -47,6 +47,7 @@ export default function FlyerTemplateShowcase({
   const beds = formData.bedrooms !== "" ? Number(formData.bedrooms) : null;
   const baths = formData.bathrooms !== "" ? Number(formData.bathrooms) : null;
   const size = formData.size !== "" ? Number(formData.size) : null;
+  const sizeUnit = formData.sizeUnit;
 
   const hero = pickSrc(images?.[0]);
   const t1 = pickSrc(images?.[1]);
@@ -134,8 +135,7 @@ export default function FlyerTemplateShowcase({
             </div>
 
             <div className="mt-3 text-[20px] tracking-wide uppercase">
-              {beds ?? "—"} BED | {baths ?? "—"} BATH |{" "}
-              {size ? `${size} SQM` : "SIZE N/A"}
+              {beds ?? "—"} BED | {baths ?? "—"} BATH | {size} {sizeUnit}
             </div>
           </div>
         </div>

@@ -70,6 +70,7 @@ export default function FlyerTemplateModern({
   const beds = formData.bedrooms !== "" ? Number(formData.bedrooms) : null;
   const baths = formData.bathrooms !== "" ? Number(formData.bathrooms) : null;
   const size = formData.size !== "" ? Number(formData.size) : null;
+  const sizeUnit = formData.sizeUnit;
 
   const gallery = (images || []).map(pickSrc).filter(Boolean);
   const hero = gallery[0] || "";
@@ -263,10 +264,10 @@ export default function FlyerTemplateModern({
           <div className="absolute bottom-0 z-10 px-8 py-6">
             <div className="text-[26px] font-bold uppercase">{fullAddress}</div>
             <div
-              className="mt-1 text-[24px] leading-none"
+              className="mt-1 text-[24px] leading-none uppercase"
               style={{ color: COLORS.secondary }}
             >
-              {beds} Bed | {baths} Bath | {size ? `${size} SQM` : "SIZE N/A"}
+              {beds} Bed | {baths} Bath | {size} {sizeUnit}
             </div>
           </div>
         </div>
