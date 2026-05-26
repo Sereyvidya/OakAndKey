@@ -135,7 +135,7 @@ export default function FlyerTemplateShowcase({
             </div>
 
             <div className="mt-3 text-[20px] tracking-wide uppercase">
-              {beds ?? "—"} BED | {baths ?? "—"} BATH | {size} {sizeUnit}
+              {beds} BED | {baths} BATH | {size} {sizeUnit}
             </div>
           </div>
         </div>

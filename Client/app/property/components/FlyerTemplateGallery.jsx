@@ -244,7 +244,7 @@ export default function FlyerTemplateGallery({
                 className="text-[18px] tracking-[0.03em] whitespace-nowrap uppercase"
                 style={{ color: COLORS.secondary }}
               >
-                {beds} Bed | {baths} Bath | {size} {sizeUnit}
+                {beds} BED | {baths} BATH | {size} {sizeUnit}
               </div>
             </div>
 

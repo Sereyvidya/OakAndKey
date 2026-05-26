@@ -86,11 +86,12 @@ function buildPropertyFacts(formData) {
   const beds = toNumber(formData.bedrooms);
   const baths = toNumber(formData.bathrooms);
   const size = toNumber(formData.size);
+  const sizeUnit = formData.sizeUnit;
 
   const facts = [];
   if (beds !== null) facts.push(`${beds} bed`);
   if (baths !== null) facts.push(`${baths} bath`);
-  if (size !== null) facts.push(`${size} sqm`);
+  if (size !== null) facts.push(`${size} ${sizeUnit}`);
 
   return facts.join(" • ");
 }

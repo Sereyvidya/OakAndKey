@@ -71,13 +71,15 @@ export async function POST(request) {
     const formData = body?.formData || {};
     const images = Array.isArray(body?.images) ? body.images : [];
 
-    const title = cleanText(formData.propertyTitle) || "New residential listing";
+    const title =
+      cleanText(formData.propertyTitle) || "New residential listing";
     const address = cleanText(formData.address);
     const type = cleanText(formData.propertyType) || "house";
     const price = formatPrice(formData.price);
     const beds = toNumber(formData.bedrooms);
     const baths = toNumber(formData.bathrooms);
     const size = toNumber(formData.size);
+    const sizeUnit = cleanText(formData.sizeUnit);
     const description = cleanText(formData.description);
     const agentName = cleanText(formData.agentName);
     const agentPhone = cleanText(formData.agentPhone);
@@ -90,7 +92,7 @@ export async function POST(request) {
       price ? `Price: ${price}` : "",
       beds !== null ? `Bedrooms: ${beds}` : "",
       baths !== null ? `Bathrooms: ${baths}` : "",
-      size !== null ? `Size: ${size} sqm` : "",
+      size !== null ? `Size: ${size} ${sizeUnit}` : "",
       description ? `Description: ${description}` : "",
       agentName ? `Agent name: ${agentName}` : "",
       agentPhone ? `Agent phone: ${agentPhone}` : "",
@@ -185,7 +187,10 @@ ${listingSummary}`;
     return Response.json({ variants });
   } catch (err) {
     return Response.json(
-      { error: err?.message || "Unexpected server error while generating captions." },
+      {
+        error:
+          err?.message || "Unexpected server error while generating captions.",
+      },
       { status: 500 }
     );
   }
