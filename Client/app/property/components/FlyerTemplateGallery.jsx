@@ -9,6 +9,7 @@ import {
 } from "@/app/lib/flyer/format";
 import { FLYER_COLORS } from "@/app/lib/flyer/theme";
 import { PhoneIcon, MailIcon } from "./FlyerIcons";
+import { FaGlobe } from "react-icons/fa";
 import DefaultCompanyLogo from "./DefaultCompanyLogo";
 
 const josefin = Josefin_Sans({
@@ -342,6 +343,13 @@ export default function FlyerTemplateGallery({
                     <MailIcon />
                   </div>
                   <span className="max-w-[300px] truncate">{email}</span>
+                </div>
+
+                <div className="flex min-w-0 items-center gap-2">
+                  <div style={{ color: COLORS.secondary }}>
+                    <FaGlobe className="ml-0.25 h-3.5 w-3.5" />
+                  </div>
+                  <span className="max-w-[300px] truncate">{socialLink}</span>
                 </div>
               </div>
             </div>

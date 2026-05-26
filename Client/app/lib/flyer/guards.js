@@ -22,13 +22,19 @@ export function getFlyerValidationErrors({ formData = {}, images = [] }) {
   const fallbackAddressParts = splitAddressParts(formData.address || "");
   const street = (
     formData.addressStreet ??
-    fallbackAddressParts.street ??
+    fallbackAddressParts.addressStreet ??
     ""
   ).trim();
-  const city = (formData.addressCity ?? fallbackAddressParts.city ?? "").trim();
+
+  const city = (
+    formData.addressCity ??
+    fallbackAddressParts.addressCity ??
+    ""
+  ).trim();
+
   const state = (
     formData.addressState ??
-    fallbackAddressParts.state ??
+    fallbackAddressParts.addressState ??
     ""
   ).trim();
   const address = composeAddress(street, city, state);
@@ -76,7 +82,7 @@ export function getFlyerValidationErrors({ formData = {}, images = [] }) {
     errors.bathrooms = "Invalid bathrooms.";
 
   if (size === null) errors.size = "Size is required.";
-  else if (Number.isNaN(size) || size < 0) errors.size = "Invalid size.";
+  else if (Number.isNaN(size) || size <= 0) errors.size = "Invalid size.";
 
   if (!description) errors.description = "Description is required.";
   else if (description.length < 20)

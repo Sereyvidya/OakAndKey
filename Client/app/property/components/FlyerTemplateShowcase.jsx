@@ -9,6 +9,7 @@ import {
 } from "@/app/lib/flyer/format";
 import { FLYER_COLORS } from "@/app/lib/flyer/theme";
 import { PhoneIcon, MailIcon } from "./FlyerIcons";
+import { FaGlobe } from "react-icons/fa";
 import DefaultCompanyLogo from "./DefaultCompanyLogo";
 
 const josefin = Josefin_Sans({
@@ -194,7 +195,7 @@ export default function FlyerTemplateShowcase({
           </div>
 
           <div
-            className="grid h-[150px] grid-cols-[220px_1fr] items-stretch"
+            className="grid h-[150px] grid-cols-[190px_1fr] items-stretch"
             style={{ color: COLORS.surface }}
           >
             <div
@@ -248,7 +249,7 @@ export default function FlyerTemplateShowcase({
                     {agentRole} | {agentCompanyName}
                   </div>
 
-                  <div className="mt-2 flex flex-wrap items-center gap-4 text-[20px]">
+                  <div className="mt-2 flex flex-wrap items-center gap-3 text-[18px]">
                     <div className="flex items-center gap-2">
                       <div style={{ color: COLORS.secondary }}>
                         <PhoneIcon className="h-10 w-10" />
@@ -261,6 +262,15 @@ export default function FlyerTemplateShowcase({
                         <MailIcon />
                       </div>
                       <span className="max-w-[300px] truncate">{email}</span>
+                    </div>
+
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div style={{ color: COLORS.secondary }}>
+                        <FaGlobe className="ml-0.25 h-3.5 w-3.5" />
+                      </div>
+                      <span className="max-w-[300px] truncate">
+                        {socialLink}
+                      </span>
                     </div>
                   </div>
                 </div>

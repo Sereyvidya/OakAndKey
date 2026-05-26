@@ -7,8 +7,8 @@ export function splitAddressParts(value = "") {
   const parts = raw.split(",").map(clean).filter(Boolean);
 
   if (parts.length >= 3) {
-    const state = parts.pop() || "";
-    const city = parts.pop() || "";
+    const state = parts.pop().toUpperCase();
+    const city = parts.pop();
     const street = parts.join(", ");
     return { street, city, state };
   }

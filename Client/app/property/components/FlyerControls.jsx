@@ -338,7 +338,7 @@ export default function FlyerControls({
           </div>
 
           {showPhotos && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2 lg:grid-cols-3">
               {images.map((image, index) => {
                 const src = image?.preview || image?.src || image?.url || "";
 

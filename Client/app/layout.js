@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
         className={`${manrope.variable} ${sora.variable} font-sans antialiased`}
       >
         <header className="sticky top-0 z-30 border-b border-[var(--card-border)]/80 bg-[color:var(--surface)]/86 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-4 sm:px-8">
+          <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-8 py-4">
             <div className="flex items-center gap-3">
               <Image
                 src="/Logo.png"
@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
               />
 
               <div className="leading-none">
-                <h1 className="text-xl font-semibold text-[color:var(--ink-strong)] sm:text-2xl">
+                <h1 className="text-2xl font-semibold text-[color:var(--ink-strong)]">
                   Oak & Key
                 </h1>
                 <p className="text-xs font-medium tracking-[0.18em] text-[color:var(--ink-muted)] uppercase">

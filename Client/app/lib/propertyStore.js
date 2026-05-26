@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { composeAddress, splitAddressParts } from "./address";
 
 const clean = (v) => String(v || "").trim();
 
@@ -23,32 +24,8 @@ const initialFormData = {
   agentPhoto: null,
 };
 
-function splitAddressParts(value = "") {
-  const raw = clean(value);
-  if (!raw) return { addressStreet: "", addressCity: "", addressState: "" };
-
-  const parts = raw.split(",").map(clean).filter(Boolean);
-
-  if (parts.length >= 3) {
-    const state = parts.pop().toUpperCase();
-    const city = parts.pop();
-    const street = parts.join(", ");
-    return { addressStreet: street, addressCity: city, addressState: state };
-  }
-
-  if (parts.length === 2) {
-    return { addressStreet: parts[0], addressCity: parts[1], addressState: "" };
-  }
-
-  return { addressStreet: parts[0] || "", addressCity: "", addressState: "" };
-}
-
-function composeAddress(street = "", city = "", state = "") {
-  return [street, city, state].map(clean).filter(Boolean).join(", ");
-}
-
 export const usePropertyStore = create((set) => ({
-  formData: initialFormData,
+  formData: { ...initialFormData },
   images: [],
 
   setFormData: (partial) =>
@@ -62,7 +39,11 @@ export const usePropertyStore = create((set) => ({
         "addressState" in partial;
 
       if (hasAddress && !hasAddressParts) {
-        Object.assign(merged, splitAddressParts(merged.address));
+        const { street, city, state } = splitAddressParts(merged.address);
+
+        merged.addressStreet = street;
+        merged.addressCity = city;
+        merged.addressState = state.toUpperCase();
       } else {
         merged.addressStreet = clean(merged.addressStreet);
         merged.addressCity = clean(merged.addressCity);
@@ -88,8 +69,17 @@ export const usePropertyStore = create((set) => ({
 
   reorderImages: (fromIndex, toIndex) =>
     set((state) => {
-      const nextImages = [...state.images];
+      if (
+        fromIndex === toIndex ||
+        fromIndex < 0 ||
+        toIndex < 0 ||
+        fromIndex >= state.images.length ||
+        toIndex >= state.images.length
+      ) {
+        return state;
+      }
 
+      const nextImages = [...state.images];
       const [movedImage] = nextImages.splice(fromIndex, 1);
 
       nextImages.splice(toIndex, 0, movedImage);
@@ -99,7 +89,7 @@ export const usePropertyStore = create((set) => ({
 
   reset: () =>
     set({
-      formData: initialFormData,
+      formData: { ...initialFormData },
       images: [],
     }),
 }));
