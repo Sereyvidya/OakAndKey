@@ -1,8 +1,6 @@
 import { create } from "zustand";
 import { composeAddress, splitAddressParts } from "./address";
 
-const clean = (v) => String(v || "").trim();
-
 const initialFormData = {
   propertyTitle: "",
   address: "",
@@ -45,17 +43,19 @@ export const usePropertyStore = create((set) => ({
         merged.addressStreet = street;
         merged.addressCity = city;
         merged.addressState = state.toUpperCase();
-      } else {
-        merged.addressStreet = clean(merged.addressStreet);
-        merged.addressCity = clean(merged.addressCity);
-        merged.addressState = clean(merged.addressState).toUpperCase();
       }
 
-      merged.address = composeAddress(
-        merged.addressStreet,
-        merged.addressCity,
-        merged.addressState
-      );
+      if (hasAddressParts) {
+        merged.address = composeAddress(
+          merged.addressStreet,
+          merged.addressCity,
+          merged.addressState
+        );
+      }
+
+      merged.addressState = String(merged.addressState || "")
+        .trim()
+        .toUpperCase();
 
       return { formData: merged };
     }),

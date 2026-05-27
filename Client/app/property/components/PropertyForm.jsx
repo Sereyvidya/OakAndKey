@@ -146,18 +146,10 @@ function validateForm(formData, images = []) {
   const errors = {};
 
   const title = (formData.propertyTitle || "").trim();
-  const fallbackAddressParts = splitAddressParts(formData.address || "");
-  const street = (
-    formData.addressStreet ??
-    fallbackAddressParts.street ??
-    ""
-  ).trim();
-  const city = (formData.addressCity ?? fallbackAddressParts.city ?? "").trim();
-  const state = (
-    formData.addressState ??
-    fallbackAddressParts.state ??
-    ""
-  ).trim();
+  // const fallbackAddressParts = splitAddressParts(formData.address || "");
+  const street = (formData.addressStreet || "").trim();
+  const city = (formData.addressCity || "").trim();
+  const state = (formData.addressState || "").trim();
   const address = composeAddress(street, city, state);
   const type = (formData.propertyType || "").trim();
   const agentName = (formData.agentName || "").trim();
@@ -457,25 +449,15 @@ export default function PropertyForm({
         : Building;
   const currentTitleLength = (formData.propertyTitle || "").length;
   const isTitleTooLong = currentTitleLength > TITLE_MAX_CHARS;
-  const parsedAddress = useMemo(
-    () => splitAddressParts(formData.address),
-    [formData.address]
-  );
-  const addressStreet = formData.addressStreet ?? parsedAddress.street;
-  const addressCity = formData.addressCity ?? parsedAddress.city;
-  const addressState = formData.addressState ?? parsedAddress.state;
+  const addressStreet = formData.addressStreet || "";
+  const addressCity = formData.addressCity || "";
+  const addressState = formData.addressState || "";
 
   const updateAddressPart = (fieldName, value) => {
-    const nextStreet =
-      fieldName === "addressStreet" ? value : addressStreet || "";
-    const nextCity = fieldName === "addressCity" ? value : addressCity || "";
-    const nextState = fieldName === "addressState" ? value : addressState || "";
-
-    onInputChange({ target: { name: fieldName, value } });
     onInputChange({
       target: {
-        name: "address",
-        value: composeAddress(nextStreet, nextCity, nextState),
+        name: fieldName,
+        value,
       },
     });
   };
@@ -560,7 +542,30 @@ export default function PropertyForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     setHasSubmitted(true);
-    const nextErrors = validateAndSet();
+
+    const finalAddress = composeAddress(
+      formData.addressStreet,
+      formData.addressCity,
+      formData.addressState
+    );
+
+    onInputChange({
+      target: {
+        name: "address",
+        value: finalAddress,
+      },
+    });
+
+    const nextErrors = validateForm(
+      {
+        ...formData,
+        address: finalAddress,
+      },
+      images
+    );
+
+    setErrors(nextErrors);
+
     if (Object.keys(nextErrors).length > 0) {
       scrollToFirstError(nextErrors);
       return;
@@ -674,24 +679,22 @@ export default function PropertyForm({
             </div>
 
             <div>
-              <label
-                htmlFor="address"
-                className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
-              >
+              <label className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]">
                 Address
               </label>
               <div
                 className={[
-                  "address-composite form-field flex h-10 items-center rounded-md border",
+                  "address-composite form-field grid h-10 grid-cols-[51fr_29fr_20fr] items-center rounded-md border",
                   hasSubmitted && errors.address
                     ? "field-error"
                     : "border-[color:var(--field-border)]",
                 ].join(" ")}
               >
-                <div className="relative min-w-0 flex-1">
-                  <span className="pointer-events-none absolute top-1/2 left-[10px] -translate-y-1/2 text-[color:var(--ink-muted)]">
-                    <MapPin size={16} />
-                  </span>
+                <div className="relative min-w-0">
+                  <MapPin
+                    size={16}
+                    className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]"
+                  />
                   <input
                     ref={(n) => (fieldRefs.current.address = n)}
                     type="text"
@@ -701,19 +704,16 @@ export default function PropertyForm({
                     onChange={(e) =>
                       updateAddressPart("addressStreet", e.target.value)
                     }
-                    className="h-8 w-full bg-transparent pr-2 pl-10 text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-muted)] focus:outline-none"
+                    className="h-10 w-full bg-transparent pr-3 pl-10 focus:outline-none"
                     placeholder={SAMPLE_AUTOFILL_FORM.addressStreet}
-                    aria-label="Street address"
-                    aria-invalid={Boolean(hasSubmitted && errors.address)}
                   />
                 </div>
 
-                <span className="pl-1 text-[color:var(--ink-muted)]">|</span>
-
-                <div className="relative min-w-0 flex-1">
-                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
-                    <Building2 size={16} />
-                  </span>
+                <div className="relative min-w-0 border-l border-[var(--field-border)]">
+                  <Building2
+                    size={16}
+                    className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]"
+                  />
                   <input
                     type="text"
                     id="addressCity"
@@ -722,73 +722,50 @@ export default function PropertyForm({
                     onChange={(e) =>
                       updateAddressPart("addressCity", e.target.value)
                     }
-                    className="h-8 w-full bg-transparent pr-2 pl-10 text-[color:var(--ink-strong)] placeholder:text-[color:var(--ink-muted)] focus:outline-none"
+                    className="h-10 w-full bg-transparent pr-3 pl-10 focus:outline-none"
                     placeholder={SAMPLE_AUTOFILL_FORM.addressCity}
-                    aria-label="City"
-                    aria-invalid={Boolean(hasSubmitted && errors.address)}
                   />
                 </div>
 
-                <span className="pl-1 text-[color:var(--ink-muted)]">|</span>
+                <div
+                  className="relative min-w-0 border-l border-[var(--field-border)]"
+                  ref={stateRef}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setIsStateOpen((open) => !open)}
+                    className="relative flex h-10 w-full items-center bg-transparent pr-8 pl-10 text-left focus:outline-none"
+                  >
+                    <Map
+                      size={16}
+                      className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]"
+                    />
+                    <span>{addressState || "State"}</span>
+                    <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--ink-muted)]">
+                      ▾
+                    </span>
+                  </button>
 
-                <div className="relative min-w-0 flex-1">
-                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
-                    <Map size={16} />
-                  </span>
-                  <div className="relative min-w-0 flex-1" ref={stateRef}>
-                    <button
-                      type="button"
-                      onClick={() => setIsStateOpen((open) => !open)}
-                      className={[
-                        "flex h-8 w-full items-center bg-transparent pr-7 pl-10 text-left focus:outline-none",
-                        addressState
-                          ? "text-[color:var(--ink-strong)]"
-                          : "text-[color:var(--ink-muted)]",
-                      ].join(" ")}
-                      aria-haspopup="listbox"
-                      aria-expanded={isStateOpen}
-                      aria-label="State"
+                  {isStateOpen && (
+                    <div
+                      className="absolute right-0 z-20 mt-2 max-h-48 w-full overflow-y-auto rounded-md border border-[var(--card-border)] bg-[var(--surface)] shadow-lg"
+                      role="listbox"
                     >
-                      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
-                        <Map size={16} />
-                      </span>
-
-                      <span>{addressState || "State"}</span>
-
-                      <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--ink-muted)]">
-                        ▾
-                      </span>
-                    </button>
-
-                    {isStateOpen && (
-                      <div
-                        className="absolute right-0 z-20 mt-3 max-h-48 w-full overflow-y-auto rounded-md border border-[var(--card-border)] bg-[var(--surface)] shadow-lg"
-                        role="listbox"
-                        aria-label="State"
-                      >
-                        {US_STATE_CODES.map((code) => (
-                          <button
-                            key={code}
-                            type="button"
-                            onClick={() => {
-                              updateAddressPart("addressState", code);
-                              setIsStateOpen(false);
-                            }}
-                            className={[
-                              "w-full px-4 py-2 text-left text-sm hover:bg-[color:var(--surface-soft)]",
-                              addressState === code
-                                ? "bg-[var(--brand-soft)] text-[var(--brand-strong)]"
-                                : "text-[color:var(--ink-strong)]",
-                            ].join(" ")}
-                            role="option"
-                            aria-selected={addressState === code}
-                          >
-                            {code}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                      {US_STATE_CODES.map((code) => (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => {
+                            updateAddressPart("addressState", code);
+                            setIsStateOpen(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm hover:bg-[color:var(--surface-soft)]"
+                        >
+                          {code}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <ErrorText>{hasSubmitted ? errors.address : ""}</ErrorText>
