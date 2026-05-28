@@ -24,7 +24,7 @@ import {
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SUPPORTED_RESIDENTIAL_TYPES = new Set(["house", "condo"]);
-const TITLE_MAX_CHARS = 35;
+const TITLE_MAX_CHARS = 70;
 const US_STATE_CODES = [
   "AL",
   "AK",
@@ -684,7 +684,7 @@ export default function PropertyForm({
               </label>
               <div
                 className={[
-                  "address-composite form-field grid h-10 grid-cols-[51fr_29fr_20fr] items-center rounded-md border",
+                  "address-composite form-field grid h-10 grid-cols-[51.2fr_28.8fr_20fr] items-center rounded-md border",
                   hasSubmitted && errors.address
                     ? "field-error"
                     : "border-[color:var(--field-border)]",
