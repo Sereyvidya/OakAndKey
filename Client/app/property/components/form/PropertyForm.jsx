@@ -2,8 +2,22 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LuRefreshCcw } from "react-icons/lu";
-import { propertyTypes } from "../constants/propertyTypes";
-import { composeAddress, splitAddressParts } from "../../lib/address";
+import {
+  propertyTypes,
+  TITLE_MAX_CHARS,
+  US_STATE_CODES,
+} from "@/app/lib/listing/constants";
+import { getListingValidationErrors } from "@/app/lib/listing/validation";
+import { composeAddress } from "@/app/lib/address";
+import ErrorText from "./ErrorText";
+import FileInput from "./FileInput";
+import GeminiButton from "./GeminiButton";
+import InputWithIcon from "./InputWithIcon";
+import MultiFileInput from "./MultiFileInput";
+import {
+  SAMPLE_AUTOFILL,
+  SAMPLE_AUTOFILL_FORM,
+} from "./propertyFormSampleData";
 import {
   Tag,
   User,
@@ -21,391 +35,6 @@ import {
   Image as ImageIcon,
   Images,
 } from "lucide-react";
-
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const SUPPORTED_RESIDENTIAL_TYPES = new Set(["house", "condo"]);
-const TITLE_MAX_CHARS = 70;
-const US_STATE_CODES = [
-  "AL",
-  "AK",
-  "AZ",
-  "AR",
-  "CA",
-  "CO",
-  "CT",
-  "DE",
-  "FL",
-  "GA",
-  "HI",
-  "ID",
-  "IL",
-  "IN",
-  "IA",
-  "KS",
-  "KY",
-  "LA",
-  "ME",
-  "MD",
-  "MA",
-  "MI",
-  "MN",
-  "MS",
-  "MO",
-  "MT",
-  "NE",
-  "NV",
-  "NH",
-  "NJ",
-  "NM",
-  "NY",
-  "NC",
-  "ND",
-  "OH",
-  "OK",
-  "OR",
-  "PA",
-  "RI",
-  "SC",
-  "SD",
-  "TN",
-  "TX",
-  "UT",
-  "VT",
-  "VA",
-  "WA",
-  "WV",
-  "WI",
-  "WY",
-];
-const SAMPLE_AUTOFILL_FORM = {
-  propertyTitle: "Modern 4-Bedroom Family Home",
-  address: "2716 Maple Grove Dr, Austin, TX",
-  addressStreet: "2716 Maple Grove Dr",
-  addressCity: "Austin",
-  addressState: "TX",
-  price: "485000",
-  propertyType: "house",
-  bedrooms: "4",
-  bathrooms: "3",
-  size: "2637",
-  sizeUnit: "sqft",
-  description:
-    "Beautifully updated 4-bedroom, 3-bath home in North Austin with an open-concept living area, a large island kitchen, and abundant natural light. The primary suite includes a walk-in closet and spa-style bath, while the fenced backyard and covered patio are perfect for entertaining. Minutes from top schools, parks, and major commuter routes.",
-  agentName: "John Carter",
-  agentCompanyName: "Oak & Key",
-  agentSocialLink: "oakandkey.com",
-  agentPhone: "(512) 555-0147",
-  agentEmail: "John.Carter@gmail.com",
-};
-
-const SAMPLE_AUTOFILL = {
-  formData: {
-    ...SAMPLE_AUTOFILL_FORM,
-    agentCompanyLogo: {
-      name: "Default Logo",
-      type: "default-svg-logo",
-      preview: "__default_svg_logo__",
-    },
-    agentPhoto: {
-      name: "headshot.jpg",
-      preview: "/headshot.jpg",
-    },
-  },
-  images: [
-    {
-      name: "dining.jpg",
-      preview: "/dining.jpg",
-    },
-    {
-      name: "entry.jpg",
-      preview: "/entry.jpg",
-    },
-    {
-      name: "lawn.jpg",
-      preview: "/lawn.jpg",
-    },
-    {
-      name: "living-room.jpg",
-      preview: "/living-room.jpg",
-    },
-  ],
-};
-
-function normalizePhone(value = "") {
-  return value.replace(/[^\d+]/g, "");
-}
-
-function isValidPhone(value = "") {
-  const v = normalizePhone(value);
-  if (!v) return false;
-  const digits = v.replace(/\D/g, "");
-  return digits.length >= 9; // min phone number length
-}
-
-function validateForm(formData, images = []) {
-  const errors = {};
-
-  const title = (formData.propertyTitle || "").trim();
-  // const fallbackAddressParts = splitAddressParts(formData.address || "");
-  const street = (formData.addressStreet || "").trim();
-  const city = (formData.addressCity || "").trim();
-  const state = (formData.addressState || "").trim();
-  const address = composeAddress(street, city, state);
-  const type = (formData.propertyType || "").trim();
-  const agentName = (formData.agentName || "").trim();
-  const companyName = (formData.agentCompanyName || "").trim();
-  const socialLink = (formData.agentSocialLink || "").trim();
-  const phone = (formData.agentPhone || "").trim();
-  const email = (formData.agentEmail || "").trim();
-  const description = (formData.description || "").trim();
-
-  // Required: property basics
-  if (!title) errors.propertyTitle = "Property title is required.";
-  else if (title.length < 6)
-    errors.propertyTitle = "Title should be at least 6 characters.";
-  else if (title.length > TITLE_MAX_CHARS)
-    errors.propertyTitle = `Title must be ${TITLE_MAX_CHARS} characters or less for flyers.`;
-
-  if (!street || !city || !state) {
-    errors.address = "Street, city, and state are required.";
-  } else if (address.length < 6) {
-    errors.address = "Address should be more specific.";
-  }
-
-  // Price
-  const priceRaw = formData.price;
-  const cleanedPrice = String(priceRaw ?? "").replace(/[,\s]/g, "");
-  const priceNum = Number(cleanedPrice);
-  if (priceRaw === "" || priceRaw === null || priceRaw === undefined) {
-    errors.price = "Price is required.";
-  } else if (Number.isNaN(priceNum) || priceNum <= 0) {
-    errors.price = "Price must be a number greater than 0.";
-  }
-
-  // Type
-  if (!type) errors.propertyType = "Please select a residential property type.";
-  else if (!SUPPORTED_RESIDENTIAL_TYPES.has(type)) {
-    errors.propertyType = "Only House and Condo are supported right now.";
-  }
-
-  // Bedroom, bathroom, size
-  const beds = formData.bedrooms === "" ? null : Number(formData.bedrooms);
-  const baths = formData.bathrooms === "" ? null : Number(formData.bathrooms);
-  const size = formData.size === "" ? null : Number(formData.size);
-
-  if (beds === null) errors.bedrooms = "Bedrooms are required.";
-  else if (Number.isNaN(beds) || beds < 0)
-    errors.bedrooms = "Must be 0 or more.";
-  if (baths === null) errors.bathrooms = "Bathrooms are required.";
-  else if (Number.isNaN(baths) || baths < 0)
-    errors.bathrooms = "Must be 0 or more.";
-  if (size === null) errors.size = "Size is required.";
-  else if (Number.isNaN(size) || size < 0) errors.size = "Must be 0 or more.";
-
-  if (!description) errors.description = "Description is required.";
-  else if (description.length < 20)
-    errors.description = "Description should be at least 20 characters.";
-
-  // Property images
-  if (!images || images.length < 4) {
-    errors.images = "Please upload at least 4 property photos.";
-  }
-
-  // Agent required
-  if (!agentName) errors.agentName = "Agent name is required.";
-  if (!companyName) errors.agentCompanyName = "Company name is required.";
-  if (!socialLink)
-    errors.agentSocialLink = "Social or website link is required.";
-
-  // Phone & Email are required
-  if (!phone) {
-    errors.agentPhone = "Phone number is required.";
-  } else if (!isValidPhone(phone)) {
-    errors.agentPhone = "Phone number looks too short.";
-  }
-
-  if (!email) {
-    errors.agentEmail = "Email is required.";
-  } else if (!emailRegex.test(email)) {
-    errors.agentEmail = "Please enter a valid email address.";
-  }
-
-  if (
-    !formData.agentCompanyLogo?.preview &&
-    formData.agentCompanyLogo?.type !== "default-svg-logo"
-  ) {
-    errors.agentCompanyLogo = "Company logo is required.";
-  }
-
-  const agentPhotoPreview =
-    typeof formData.agentPhoto === "string"
-      ? formData.agentPhoto
-      : formData.agentPhoto?.preview || "";
-
-  if (!agentPhotoPreview) {
-    errors.agentPhoto = "Agent photo is required.";
-  }
-  return errors;
-}
-
-function ErrorText({ children }) {
-  if (!children) return null;
-  return <p className="form-error-text mt-1 text-sm">{children}</p>;
-}
-
-function InputWithIcon({ icon: Icon, inputProps, hasError }) {
-  return (
-    <div className="relative">
-      <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
-        <Icon size={16} />
-      </span>
-
-      <input
-        {...inputProps}
-        className={[
-          "form-input-focus form-field h-10 w-full rounded-md border py-2 pr-4 pl-10",
-          hasError ? "field-error" : "border-[color:var(--field-border)]",
-        ].join(" ")}
-      />
-    </div>
-  );
-}
-
-function FileInput({ icon: Icon, label, onChange, onClear, accept, file }) {
-  const inputId = `${label.replace(/\s+/g, "-").toLowerCase()}-input`;
-
-  return (
-    <div>
-      <div className="mb-2 text-sm font-medium text-[color:var(--ink-base)]">
-        {label}
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <label
-            htmlFor={inputId}
-            className="relative inline-flex cursor-pointer items-center rounded-md border border-[color:var(--field-border)] bg-[color:var(--field-bg)] px-4 py-2 pl-10 text-sm font-medium text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]"
-          >
-            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
-              <Icon size={16} />
-            </span>
-            Choose file
-          </label>
-
-          <input
-            id={inputId}
-            type="file"
-            accept={accept}
-            onChange={onChange}
-            className="hidden"
-          />
-
-          <span className="text-sm text-[color:var(--ink-muted)]">
-            {file?.name || "No file chosen"}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-sm text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)]"
-        >
-          Clear
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function MultiFileInput({
-  icon: Icon,
-  label,
-  onChange,
-  onClear,
-  files,
-  hasError,
-}) {
-  const inputId = `${label.replace(/\s+/g, "-").toLowerCase()}-input`;
-
-  return (
-    <div>
-      <div className="mb-2 text-sm font-medium text-[color:var(--ink-base)]">
-        {label}
-      </div>
-
-      <div className="flex justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <label
-            htmlFor={inputId}
-            className={[
-              "relative inline-flex cursor-pointer items-center rounded-md border bg-[color:var(--field-bg)] px-4 py-2 pl-10 text-sm font-medium text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
-              hasError ? "field-error" : "border-[color:var(--field-border)]",
-            ].join(" ")}
-          >
-            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
-              <Icon size={16} />
-            </span>
-            Choose file
-          </label>
-
-          <input
-            id={inputId}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={onChange}
-            className="hidden"
-          />
-
-          <span className="text-sm text-[color:var(--ink-muted)]">
-            {files?.length
-              ? `${files.length} file${files.length > 1 ? "s" : ""} selected`
-              : "No files chosen"}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={onClear}
-          className="mt-3 text-sm text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)] disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!files?.length}
-        >
-          Clear
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function GeminiButton({ onClick, disabled, isLoading }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label="Rewrite description with Gemini"
-      title="Rewrite description with Gemini"
-      className="hover-lift inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--field-border)] bg-[color:var(--field-bg)] text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)] disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      {isLoading ? (
-        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-r-transparent" />
-      ) : (
-        <svg
-          viewBox="0 0 24 24"
-          className="h-4 w-4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 2l1.8 4.7L18.5 8.5l-4.7 1.8L12 15l-1.8-4.7L5.5 8.5l4.7-1.8L12 2z" />
-          <path d="M19 14l1 2.4L22.4 17l-2.4.9L19 20.4l-.9-2.5L15.6 17l2.5-.6L19 14z" />
-        </svg>
-      )}
-    </button>
-  );
-}
 
 export default function PropertyForm({
   formData,
@@ -463,7 +92,10 @@ export default function PropertyForm({
   };
 
   const validateAndSetWith = (nextFormData, nextImages) => {
-    const nextErrors = validateForm(nextFormData, nextImages);
+    const nextErrors = getListingValidationErrors({
+      formData: nextFormData,
+      images: nextImages,
+    });
     setErrors(nextErrors);
     return nextErrors;
   };
@@ -473,7 +105,7 @@ export default function PropertyForm({
   }, [errors, hasSubmitted]);
 
   const validateAndSet = () => {
-    const nextErrors = validateForm(formData, images);
+    const nextErrors = getListingValidationErrors({ formData, images });
     setErrors(nextErrors);
     return nextErrors;
   };
@@ -556,13 +188,13 @@ export default function PropertyForm({
       },
     });
 
-    const nextErrors = validateForm(
-      {
+    const nextErrors = getListingValidationErrors({
+      formData: {
         ...formData,
         address: finalAddress,
       },
-      images
-    );
+      images,
+    });
 
     setErrors(nextErrors);
 
@@ -608,7 +240,7 @@ export default function PropertyForm({
 
   useEffect(() => {
     if (!hasSubmitted) return;
-    setErrors(validateForm(formData, images));
+    setErrors(getListingValidationErrors({ formData, images }));
   }, [formData, images, hasSubmitted]);
 
   return (

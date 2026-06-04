@@ -3,20 +3,14 @@
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePropertyStore } from "@/app/lib/propertyStore";
-import FlyerPreview from "../components/FlyerPreview";
-import FlyerControls from "../components/FlyerControls";
+import FlyerPreview from "../components/flyer/FlyerPreview";
+import FlyerControls from "../components/flyer/FlyerControls";
 import { hasCompleteFlyerData } from "@/app/lib/flyer/guards";
 import { makeSafeFilename } from "@/app/lib/flyer/filename";
 import { exportFlyerPNG, exportFlyerPDF } from "@/app/lib/flyer/export";
+import { TEMPLATES } from "@/app/lib/flyer/templates.js";
 import { buildFlyerTheme } from "@/app/lib/flyer/theme";
-
-const TEMPLATES = [
-  { key: "showcase", label: "Showcase" },
-  { key: "gallery", label: "Gallery" },
-  { key: "modern", label: "Modern" },
-];
-
-const SUPPORTED_RESIDENTIAL_TYPES = new Set(["house", "condo"]);
+import { supportedResidentialTypes } from "@/app/lib/listing/constants";
 
 export default function FlyerPage() {
   const [template, setTemplate] = useState("showcase");
@@ -46,7 +40,7 @@ export default function FlyerPage() {
   );
   const hasUnsupportedType = useMemo(() => {
     const type = (formData.propertyType || "").trim();
-    return Boolean(type) && !SUPPORTED_RESIDENTIAL_TYPES.has(type);
+    return Boolean(type) && !supportedResidentialTypes.has(type);
   }, [formData.propertyType]);
 
   const safeFileBase = useMemo(

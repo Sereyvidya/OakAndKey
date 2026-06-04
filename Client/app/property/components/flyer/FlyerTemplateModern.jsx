@@ -1,17 +1,15 @@
 "use client";
 
 import { Josefin_Sans } from "next/font/google";
-import {
-  cleanText,
-  formatPrice,
-  pickSrc,
-  joinParts,
-} from "@/app/lib/flyer/format";
+import { cleanText } from "@/app/lib/listing/format";
+import { buildFlyerViewModel } from "@/app/lib/flyer/viewModel";
 import { FLYER_COLORS } from "@/app/lib/flyer/theme";
 import { MailIcon } from "./FlyerIcons";
 import { LuCalendarClock } from "react-icons/lu";
 import { FaGlobe } from "react-icons/fa";
-import DefaultCompanyLogo from "./DefaultCompanyLogo";
+import CompanyLogoBlock from "./CompanyLogoBlock";
+import ContactLine from "./ContactLine";
+import QrCode from "./QrCode";
 
 const josefin = Josefin_Sans({
   subsets: ["latin"],
@@ -55,40 +53,26 @@ export default function FlyerTemplateModern({
   const agentRole = cleanText(copy.agentRole?.text) || "Residential Specialist";
   const agentRoleSize = copy.agentRole?.size || 14;
 
-  const address =
-    joinParts([formData.addressCity, formData.addressState]) || "Austin, TX";
-  const fullAddress = cleanText(formData.address) || address;
-
-  const description =
-    cleanText(formData.description) ||
-    "Beautifully updated residence with open living spaces, refined finishes, and a layout designed for modern everyday living.";
-
-  const priceText = cleanText(formData.price)
-    ? `$${formatPrice(formData.price)}`
-    : "Contact for price";
-
-  const beds = formData.bedrooms !== "" ? Number(formData.bedrooms) : null;
-  const baths = formData.bathrooms !== "" ? Number(formData.bathrooms) : null;
-  const size = formData.size !== "" ? Number(formData.size) : null;
-  const sizeUnit = formData.sizeUnit;
-
-  const gallery = (images || []).map(pickSrc).filter(Boolean);
-  const hero = gallery[0] || "";
-  const galleryPhotos = gallery.slice(1, 7);
-
-  const agentName = cleanText(formData.agentName) || "Listing Agent";
-  const agentCompanyName = cleanText(formData.agentCompanyName);
-  const phone = cleanText(formData.agentPhone);
-  const email = cleanText(formData.agentEmail);
-  const agentPhoto = pickSrc(formData.agentPhoto);
-  const companyLogo = pickSrc(formData.agentCompanyLogo);
-  const isDefaultLogo = formData.agentCompanyLogo?.type === "default-svg-logo";
-  const socialLink = cleanText(formData.agentSocialLink);
-  const qrSrc = socialLink
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-        socialLink
-      )}`
-    : "";
+  const {
+    fullAddress,
+    description,
+    priceText,
+    beds,
+    baths,
+    size,
+    sizeUnit,
+    hero,
+    galleryPhotos,
+    agentName,
+    agentCompanyName,
+    phone,
+    email,
+    agentPhoto,
+    companyLogo,
+    isDefaultLogo,
+    socialLink,
+    qrSrc,
+  } = buildFlyerViewModel(formData, images);
 
   return (
     <div
@@ -127,26 +111,13 @@ export default function FlyerTemplateModern({
             borderColor: COLORS.secondary,
           }}
         >
-          {isDefaultLogo ? (
-            <DefaultCompanyLogo
-              primary={COLORS.primary}
-              secondary={COLORS.secondary}
-              className="h-[115px] w-[115px]"
-            />
-          ) : companyLogo ? (
-            <img
-              src={companyLogo}
-              alt="Company logo"
-              className="max-h-full max-w-full object-contain"
-            />
-          ) : (
-            <div
-              className="text-center text-xs font-semibold uppercase"
-              style={{ color: `${COLORS.black}99` }}
-            >
-              {agentCompanyName || "Company Logo"}
-            </div>
-          )}
+          <CompanyLogoBlock
+            isDefaultLogo={isDefaultLogo}
+            companyLogo={companyLogo}
+            agentCompanyName={agentCompanyName}
+            colors={COLORS}
+            logoClassName="h-[115px] w-[115px]"
+          />
         </div>
 
         {/* Hero image */}
@@ -405,28 +376,26 @@ export default function FlyerTemplateModern({
             className="text-[11px] leading-[1.4] font-semibold"
             style={{ color: COLORS.textBody }}
           >
-            <div className="flex min-w-0 items-center gap-2">
-              <div style={{ color: COLORS.secondary }}>
-                <FaGlobe className="ml-0.25 h-3.5 w-3.5" />
-              </div>
-              <span className="max-w-[300px] truncate text-[16px]">
-                {socialLink}
-              </span>
-            </div>
+            <ContactLine
+              icon={<FaGlobe className="ml-0.25 h-3.5 w-3.5" />}
+              iconColor={COLORS.secondary}
+              textClassName="max-w-[300px] truncate text-[16px]"
+            >
+              {socialLink}
+            </ContactLine>
 
-            <div className="flex min-w-0 items-center gap-2">
-              <div style={{ color: COLORS.secondary }}>
-                <MailIcon />
-              </div>
-              <span className="max-w-[300px] truncate text-[16px]">
-                {email}
-              </span>
-            </div>
+            <ContactLine
+              icon={<MailIcon />}
+              iconColor={COLORS.secondary}
+              textClassName="max-w-[300px] truncate text-[16px]"
+            >
+              {email}
+            </ContactLine>
           </div>
 
           <div className="flex justify-end">
             <div className="w-[80%] p-2" style={{ background: COLORS.surface }}>
-              <img src={qrSrc} alt="QR code" className="h-[72px] w-[72px]" />
+              <QrCode src={qrSrc} className="h-[72px] w-[72px]" />
             </div>
           </div>
         </div>

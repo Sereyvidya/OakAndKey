@@ -1,4 +1,1 @@
-export const propertyTypes = [
-  { value: "house", label: "House" },
-  { value: "condo", label: "Condo" },
-];
+export { propertyTypes } from "@/app/lib/listing/constants";

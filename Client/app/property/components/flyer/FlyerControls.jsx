@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import InlineSpinner from "./InlineSpinner";
+import InlineSpinner from "../shared/InlineSpinner";
 import { buildFlyerTheme, FLYER_THEME_PRESETS } from "@/app/lib/flyer/theme";
 import { TEXT_FIELDS_BY_TEMPLATE } from "@/app/lib/flyer/templateCopy";
 import { FiChevronUp, FiChevronDown, FiDownload } from "react-icons/fi";

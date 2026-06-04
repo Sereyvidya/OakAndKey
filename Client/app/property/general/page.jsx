@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import PropertyForm from "../components/PropertyForm";
+import PropertyForm from "../components/form/PropertyForm";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 
 export default function GeneralInfoPage() {

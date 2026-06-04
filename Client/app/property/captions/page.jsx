@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePropertyStore } from "@/app/lib/propertyStore";
-import InlineSpinner from "../components/InlineSpinner";
+import InlineSpinner from "../components/shared/InlineSpinner";
 import { generateCaptionVariants } from "@/app/lib/captions/generate";
 
 const CAPTION_MODES = [

@@ -1,18 +1,4 @@
-function cleanText(v) {
-  return (v ?? "").toString().trim();
-}
-
-function toNumber(v) {
-  if (v === "" || v === null || v === undefined) return null;
-  const num = Number(v);
-  return Number.isNaN(num) ? null : num;
-}
-
-function formatPrice(price) {
-  const n = toNumber(price);
-  if (n === null) return null;
-  return `$${n.toLocaleString("en-US")}`;
-}
+import { cleanText, formatCurrency, toNumber } from "../listing/format";
 
 function parseAreaFromAddress(address) {
   const parts = cleanText(address)
@@ -100,7 +86,7 @@ export function generateCaptionVariants(formData, images = []) {
   const title = cleanText(formData.propertyTitle) || "New listing";
   const area = parseAreaFromAddress(formData.address);
   const type = cleanText(formData.propertyType) || "home";
-  const price = formatPrice(formData.price);
+  const price = formatCurrency(formData.price);
   const facts = buildPropertyFacts(formData);
   const photoTags = detectPhotoTags(images);
 

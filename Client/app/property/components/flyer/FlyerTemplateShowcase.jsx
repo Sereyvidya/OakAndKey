@@ -1,16 +1,14 @@
 "use client";
 
 import { Josefin_Sans } from "next/font/google";
-import {
-  cleanText,
-  formatPrice,
-  pickSrc,
-  joinParts,
-} from "@/app/lib/flyer/format";
+import { cleanText } from "@/app/lib/listing/format";
+import { buildFlyerViewModel } from "@/app/lib/flyer/viewModel";
 import { FLYER_COLORS } from "@/app/lib/flyer/theme";
 import { PhoneIcon, MailIcon } from "./FlyerIcons";
 import { FaGlobe } from "react-icons/fa";
-import DefaultCompanyLogo from "./DefaultCompanyLogo";
+import CompanyLogoBlock from "./CompanyLogoBlock";
+import ContactLine from "./ContactLine";
+import QrCode from "./QrCode";
 
 const josefin = Josefin_Sans({
   subsets: ["latin"],
@@ -36,37 +34,31 @@ export default function FlyerTemplateShowcase({
   const agentRole = cleanText(copy.agentRole?.text) || "Residential Specialist";
   const agentRoleSize = copy.agentRole?.size || 14;
 
-  const address = joinParts([formData.addressCity, formData.addressState]);
-  const description =
-    cleanText(formData.description) ||
-    "This spacious residence offers a practical floor plan, bright interiors, and quality finishes for modern family living.";
-  const priceText = cleanText(formData.price)
-    ? `$${formatPrice(formData.price)}`
-    : "Contact for price";
+  const {
+    address,
+    description,
+    priceText,
+    beds,
+    baths,
+    size,
+    sizeUnit,
+    hero,
+    galleryPhotos,
+    agentName,
+    agentCompanyName,
+    socialLink,
+    phone,
+    email,
+    agentPhoto,
+    companyLogo,
+    isDefaultLogo,
+    qrSrc,
+  } = buildFlyerViewModel(formData, images, {
+    defaultDescription:
+      "This spacious residence offers a practical floor plan, bright interiors, and quality finishes for modern family living.",
+  });
 
-  const beds = formData.bedrooms !== "" ? Number(formData.bedrooms) : null;
-  const baths = formData.bathrooms !== "" ? Number(formData.bathrooms) : null;
-  const size = formData.size !== "" ? Number(formData.size) : null;
-  const sizeUnit = formData.sizeUnit;
-
-  const hero = pickSrc(images?.[0]);
-  const t1 = pickSrc(images?.[1]);
-  const t2 = pickSrc(images?.[2]);
-  const t3 = pickSrc(images?.[3]);
-
-  const agentName = cleanText(formData.agentName) || "Listing Agent";
-  const agentCompanyName = cleanText(formData.agentCompanyName);
-  const socialLink = cleanText(formData.agentSocialLink);
-  const phone = cleanText(formData.agentPhone);
-  const email = cleanText(formData.agentEmail);
-  const agentPhoto = pickSrc(formData.agentPhoto);
-  const companyLogo = pickSrc(formData.agentCompanyLogo);
-  const isDefaultLogo = formData.agentCompanyLogo?.type === "default-svg-logo";
-  const qrSrc = socialLink
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-        socialLink
-      )}`
-    : "";
+  const [t1, t2, t3] = galleryPhotos;
 
   return (
     <div
@@ -203,26 +195,13 @@ export default function FlyerTemplateShowcase({
               style={{ background: COLORS.surface }}
             >
               <div className="flex h-[150px] w-full items-center justify-center">
-                {isDefaultLogo ? (
-                  <DefaultCompanyLogo
-                    primary={COLORS.primary}
-                    secondary={COLORS.secondary}
-                    className="h-full w-full"
-                  />
-                ) : companyLogo ? (
-                  <img
-                    src={companyLogo}
-                    alt="Company logo"
-                    className="max-h-full max-w-full object-contain"
-                  />
-                ) : (
-                  <div
-                    className="text-center text-sm font-semibold uppercase"
-                    style={{ color: `${COLORS.black}99` }}
-                  >
-                    {agentCompanyName || "Company Logo"}
-                  </div>
-                )}
+                <CompanyLogoBlock
+                  isDefaultLogo={isDefaultLogo}
+                  companyLogo={companyLogo}
+                  agentCompanyName={agentCompanyName}
+                  colors={COLORS}
+                  fallbackClassName="text-center text-sm font-semibold uppercase"
+                />
               </div>
             </div>
 
@@ -250,38 +229,34 @@ export default function FlyerTemplateShowcase({
                   </div>
 
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-[18px]">
-                    <div className="flex items-center gap-2">
-                      <div style={{ color: COLORS.secondary }}>
-                        <PhoneIcon className="h-10 w-10" />
-                      </div>
-                      <span>{phone}</span>
-                    </div>
+                    <ContactLine
+                      icon={<PhoneIcon className="h-10 w-10" />}
+                      iconColor={COLORS.secondary}
+                      className="flex items-center gap-2"
+                      textClassName=""
+                    >
+                      {phone}
+                    </ContactLine>
 
-                    <div className="flex min-w-0 items-center gap-2">
-                      <div style={{ color: COLORS.secondary }}>
-                        <MailIcon />
-                      </div>
-                      <span className="max-w-[300px] truncate">{email}</span>
-                    </div>
+                    <ContactLine
+                      icon={<MailIcon />}
+                      iconColor={COLORS.secondary}
+                    >
+                      {email}
+                    </ContactLine>
 
-                    <div className="flex min-w-0 items-center gap-2">
-                      <div style={{ color: COLORS.secondary }}>
-                        <FaGlobe className="ml-0.25 h-3.5 w-3.5" />
-                      </div>
-                      <span className="max-w-[300px] truncate">
-                        {socialLink}
-                      </span>
-                    </div>
+                    <ContactLine
+                      icon={<FaGlobe className="ml-0.25 h-3.5 w-3.5" />}
+                      iconColor={COLORS.secondary}
+                    >
+                      {socialLink}
+                    </ContactLine>
                   </div>
                 </div>
 
                 <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-4">
                   <div style={{ background: COLORS.surface }} className="p-2">
-                    <img
-                      src={qrSrc}
-                      alt="QR code"
-                      className="h-[92px] w-[92px]"
-                    />
+                    <QrCode src={qrSrc} className="h-[92px] w-[92px]" />
                   </div>
                 </div>
               </div>
