@@ -341,7 +341,8 @@ export default function PropertyForm({
                   />
                 </div>
 
-                <div className="relative min-w-0 border-l border-[var(--field-border)]">
+                <div className="relative min-w-0">
+                  <div className="absolute top-2 bottom-2 left-0 w-px bg-[var(--field-border)]" />
                   <Building2
                     size={16}
                     className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]"
@@ -359,10 +360,8 @@ export default function PropertyForm({
                   />
                 </div>
 
-                <div
-                  className="relative min-w-0 border-l border-[var(--field-border)]"
-                  ref={stateRef}
-                >
+                <div className="relative min-w-0" ref={stateRef}>
+                  <div className="absolute top-2 bottom-2 left-0 w-px bg-[var(--field-border)]" />
                   <button
                     type="button"
                     onClick={() => setIsStateOpen((open) => !open)}
@@ -372,7 +371,15 @@ export default function PropertyForm({
                       size={16}
                       className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]"
                     />
-                    <span>{addressState || "State"}</span>
+                    <span
+                      className={
+                        addressState
+                          ? "text-[color:var(--ink-base)]"
+                          : "text-[color:var(--ink-muted)]"
+                      }
+                    >
+                      {addressState || "State"}
+                    </span>
                     <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--ink-muted)]">
                       ▾
                     </span>
