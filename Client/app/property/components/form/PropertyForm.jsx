@@ -48,6 +48,8 @@ export default function PropertyForm({
   onCompanyLogoChange,
   onClearAgentPhoto,
   onClearCompanyLogo,
+  onQrCodeChange,
+  onClearQrCode,
   onRemoveImage,
   onSubmit,
   onPropertyTypeSelect,

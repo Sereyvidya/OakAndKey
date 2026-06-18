@@ -18,6 +18,7 @@ const initialFormData = {
   agentCompanyName: "",
   agentSocialLink: "",
   agentCompanyLogo: null,
+  agentQrCode: null,
   agentPhone: "",
   agentEmail: "",
   agentPhoto: null,

@@ -38,10 +38,12 @@ export function buildFlyerViewModel(formData = {}, images = [], options = {}) {
     agentPhoto: pickSrc(formData.agentPhoto),
     companyLogo: pickSrc(formData.agentCompanyLogo),
     isDefaultLogo: formData.agentCompanyLogo?.type === "default-svg-logo",
-    qrSrc: socialLink
-      ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
-          socialLink
-        )}`
-      : "",
+    qrSrc:
+      pickSrc(formData.agentQrCode) ||
+      (socialLink
+        ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+            socialLink
+          )}`
+        : ""),
   };
 }

@@ -11,7 +11,9 @@ import {
   FiPlus,
   FiX,
 } from "react-icons/fi";
+import { IoQrCode } from "react-icons/io5";
 import { usePropertyStore } from "@/app/lib/propertyStore";
+import FileInput from "../form/FileInput";
 
 export default function FlyerControls({
   template,
@@ -30,12 +32,14 @@ export default function FlyerControls({
 }) {
   const [showCustomTheme, setShowCustomTheme] = useState(false);
   const [showColors, setShowColors] = useState(true);
-  const [showTextControls, setShowTextControls] = useState(true);
+  const [showText, setShowText] = useState(true);
   const [showPhotos, setShowPhotos] = useState(true);
   const [exportType, setExportType] = useState("png");
 
   const images = usePropertyStore((s) => s.images);
   const reorderImages = usePropertyStore((s) => s.reorderImages);
+  const formData = usePropertyStore((s) => s.formData);
+  const setFormData = usePropertyStore((s) => s.setFormData);
   const [draggedIndex, setDraggedIndex] = useState(null);
 
   const [customColors, setCustomColors] = useState({
@@ -93,6 +97,26 @@ export default function FlyerControls({
     }));
   };
 
+  const fileToBase64 = (file) =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) =>
+        resolve({ preview: event.target.result, name: file.name });
+      reader.readAsDataURL(file);
+    });
+
+  const handleQrCodeChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const img = await fileToBase64(file);
+    setFormData({ agentQrCode: img });
+  };
+
+  const clearQrCode = () => {
+    setFormData({ agentQrCode: null });
+  };
+
   return (
     <aside className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur md:sticky md:top-24 md:h-fit">
       <h1 className="mb-6 text-3xl font-semibold text-[color:var(--ink-strong)]">
@@ -143,15 +167,13 @@ export default function FlyerControls({
               />
             </button>
           </div>
-
           {showPhotos && images.length > 1 && (
             <p className="mb-3 text-xs text-[var(--ink-muted)]">
               Drag photos to reorder them on the flyer.
             </p>
           )}
-
           {showPhotos && (
-            <div className="grid grid-cols-4 gap-2 lg:grid-cols-3">
+            <div className="mb-3 grid grid-cols-4 gap-2 lg:grid-cols-3">
               {images.map((image, index) => {
                 const src = image?.preview || image?.src || image?.url || "";
 
@@ -187,6 +209,23 @@ export default function FlyerControls({
                   </div>
                 );
               })}
+            </div>
+          )}
+          {showPhotos && (
+            <div className="mt-4 border-t border-[var(--card-border)] pt-4">
+              <p className="mb-3 text-xs text-[var(--ink-muted)]">
+                Optional: Upload your own QR code. Otherwise, the flyer will
+                generate one from your Social / Website link.
+              </p>
+
+              <FileInput
+                icon={IoQrCode}
+                label=""
+                accept="image/*"
+                file={formData.agentQrCode}
+                onChange={handleQrCodeChange}
+                onClear={clearQrCode}
+              />
             </div>
           )}
         </section>
@@ -349,19 +388,19 @@ export default function FlyerControls({
 
             <button
               type="button"
-              onClick={() => setShowTextControls((prev) => !prev)}
+              onClick={() => setShowText((prev) => !prev)}
               className="text-[var(--brand)] hover:text-[var(--brand-strong)]"
             >
               <FiChevronDown
                 className={[
                   "h-4 w-4 transition-transform duration-200",
-                  showTextControls ? "rotate-180" : "",
+                  showText ? "rotate-180" : "",
                 ].join(" ")}
               />
             </button>
           </div>
 
-          {showTextControls && (
+          {showText && (
             <>
               <p className="mb-3 text-xs text-[var(--ink-muted)]">
                 Adjust wording and font sizes for this template.
