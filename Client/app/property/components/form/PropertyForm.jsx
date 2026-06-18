@@ -35,6 +35,7 @@ import {
   Image as ImageIcon,
   Images,
 } from "lucide-react";
+import { FiChevronDown } from "react-icons/fi";
 
 export default function PropertyForm({
   formData,
@@ -58,6 +59,7 @@ export default function PropertyForm({
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isRewording, setIsRewording] = useState(false);
   const [rewordError, setRewordError] = useState("");
+  const [unitRotation, setUnitRotation] = useState(false);
 
   const propertyTypeRef = useRef(null);
 
@@ -380,9 +382,12 @@ export default function PropertyForm({
                     >
                       {addressState || "State"}
                     </span>
-                    <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[color:var(--ink-muted)]">
-                      ▾
-                    </span>
+                    <FiChevronDown
+                      className={[
+                        "pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-muted)] transition-transform duration-200",
+                        isStateOpen ? "rotate-180" : "",
+                      ].join(" ")}
+                    />
                   </button>
 
                   {isStateOpen && (
@@ -490,9 +495,12 @@ export default function PropertyForm({
                         : "Select"}
                     </span>
 
-                    <span className="ml-2 text-[color:var(--ink-muted)]">
-                      ▾
-                    </span>
+                    <FiChevronDown
+                      className={[
+                        "ml-2 h-4 w-4 text-[color:var(--ink-muted)] transition-transform duration-200",
+                        isPropertyTypeOpen ? "rotate-180" : "",
+                      ].join(" ")}
+                    />
                   </button>
 
                   {isPropertyTypeOpen && (
@@ -594,19 +602,26 @@ export default function PropertyForm({
 
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      setUnitRotation((r) => !r);
+
                       onInputChange({
                         target: {
                           name: "sizeUnit",
                           value: formData.sizeUnit === "sqft" ? "sqm" : "sqft",
                         },
-                      })
-                    }
+                      });
+                    }}
                     className="rounded-md p-1 text-[color:var(--ink-soft)] transition hover:bg-[color:var(--surface-soft)] hover:text-[color:var(--ink-strong)]"
                     aria-label="Toggle size unit"
                     title="Toggle sqm / sq ft"
                   >
-                    <LuRefreshCcw className="h-3.5 w-3.5" />
+                    <LuRefreshCcw
+                      className={[
+                        "h-3.5 w-3.5 transition-transform duration-300",
+                        unitRotation ? "rotate-180" : "",
+                      ].join(" ")}
+                    />
                   </button>
                 </div>
 

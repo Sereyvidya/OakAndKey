@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { FiChevronDown } from "react-icons/fi";
 
 const CAPTION_MODES = [
   { value: "local", label: "Local Generator" },
@@ -39,7 +40,14 @@ export default function ModeMenu({ mode, setMode }) {
         aria-expanded={isModeOpen}
       >
         <span>{selectedMode.label}</span>
-        <span className="ml-3 text-xs text-[color:var(--ink-muted)]">▾</span>
+        <span className="ml-3 text-[color:var(--ink-muted)]">
+          <FiChevronDown
+            className={[
+              "h-4 w-4 transition-transform duration-200",
+              isModeOpen ? "rotate-180" : "",
+            ].join(" ")}
+          />
+        </span>
       </button>
 
       {isModeOpen ? (

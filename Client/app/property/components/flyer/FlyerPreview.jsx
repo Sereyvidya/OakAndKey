@@ -61,9 +61,9 @@ const FlyerPreview = forwardRef(function FlyerPreview(
         >
           {/* Export node: fixed size, never fluid */}
           <div
-            key={template}
+            key={`${template}-${theme?.primary}-${theme?.secondary}-${theme?.surface}`}
             ref={exportRef}
-            className="h-full w-full overflow-hidden bg-white"
+            className="flyer-stage-enter h-full w-full overflow-hidden bg-white shadow-[0_40px_80px_rgba(20,26,36,0.18)]"
           >
             <div className="relative h-full w-full">
               <Template

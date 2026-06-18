@@ -4,7 +4,13 @@ import { useState } from "react";
 import InlineSpinner from "../shared/InlineSpinner";
 import { buildFlyerTheme, FLYER_THEME_PRESETS } from "@/app/lib/flyer/theme";
 import { TEXT_FIELDS_BY_TEMPLATE } from "@/app/lib/flyer/templateCopy";
-import { FiChevronUp, FiChevronDown, FiDownload } from "react-icons/fi";
+import {
+  FiChevronUp,
+  FiChevronDown,
+  FiDownload,
+  FiPlus,
+  FiX,
+} from "react-icons/fi";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 
 export default function FlyerControls({
@@ -34,8 +40,8 @@ export default function FlyerControls({
 
   const [customColors, setCustomColors] = useState({
     name: "Custom",
-    primary: "#c8bd91",
-    secondary: "#171c24",
+    primary: "#171c24",
+    secondary: "#c8bd91",
     surface: "#f4efe6",
   });
 
@@ -88,7 +94,7 @@ export default function FlyerControls({
   };
 
   return (
-    <aside className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur lg:sticky lg:top-24 lg:h-fit">
+    <aside className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur md:sticky md:top-24 md:h-fit">
       <h1 className="mb-6 text-3xl font-semibold text-[color:var(--ink-strong)]">
         Flyer Builder
       </h1>
@@ -108,7 +114,7 @@ export default function FlyerControls({
                 className={[
                   "hover-lift rounded-xl px-3 py-2 text-sm font-semibold transition",
                   template === key
-                    ? "bg-[var(--brand)] text-[#0b0f14]"
+                    ? "scale-[1.02] bg-[var(--brand)] text-[#0b0f14]"
                     : "border border-[var(--field-border)] text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]",
                 ].join(" ")}
               >
@@ -116,6 +122,73 @@ export default function FlyerControls({
               </button>
             ))}
           </div>
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
+              Photos
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPhotos((prev) => !prev)}
+              className="text-[var(--brand)] hover:text-[var(--brand-strong)]"
+            >
+              <FiChevronDown
+                className={[
+                  "h-4 w-4 transition-transform duration-200",
+                  showPhotos ? "rotate-180" : "",
+                ].join(" ")}
+              />
+            </button>
+          </div>
+
+          {showPhotos && images.length > 1 && (
+            <p className="mb-3 text-xs text-[var(--ink-muted)]">
+              Drag photos to reorder them on the flyer.
+            </p>
+          )}
+
+          {showPhotos && (
+            <div className="grid grid-cols-4 gap-2 lg:grid-cols-3">
+              {images.map((image, index) => {
+                const src = image?.preview || image?.src || image?.url || "";
+
+                return (
+                  <div
+                    key={src || index}
+                    draggable
+                    onDragStart={() => setDraggedIndex(index)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => {
+                      if (draggedIndex === null || draggedIndex === index)
+                        return;
+                      reorderImages(draggedIndex, index);
+                      setDraggedIndex(null);
+                    }}
+                    onDragEnd={() => setDraggedIndex(null)}
+                    className={[
+                      "group relative aspect-square cursor-grab overflow-hidden rounded-xl border bg-[color:var(--field-bg)] transition",
+                      draggedIndex === index
+                        ? "scale-95 border-[var(--brand)] opacity-60"
+                        : "border-[var(--field-border)] hover:-translate-y-0.5 hover:border-[var(--brand)] hover:shadow-md",
+                    ].join(" ")}
+                  >
+                    <img
+                      src={src}
+                      alt={`Property photo ${index + 1}`}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+
+                    <div className="absolute top-1 left-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white">
+                      {index + 1}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section>
@@ -129,59 +202,86 @@ export default function FlyerControls({
               onClick={() => setShowColors((prev) => !prev)}
               className="text-[var(--brand)] hover:text-[var(--brand-strong)]"
             >
-              {showColors ? (
-                <FiChevronDown className="h-4 w-4" />
-              ) : (
-                <FiChevronUp className="h-4 w-4" />
-              )}
+              <FiChevronDown
+                className={[
+                  "h-4 w-4 transition-transform duration-200",
+                  showColors ? "rotate-180" : "",
+                ].join(" ")}
+              />
             </button>
           </div>
           {showColors && (
-            <div className="grid grid-cols-4 gap-2">
-              {allThemePresets.map(({ key, name, colors }) => {
-                const active = themePreset === key;
+            <>
+              <p className="mb-3 text-xs text-[var(--ink-muted)]">
+                Choose a color palette or define your own.
+              </p>
+              <div className="grid grid-cols-4 gap-1">
+                {allThemePresets.map(({ key, name, colors }) => {
+                  const active = themePreset === key;
 
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setThemePreset(key)}
-                    title={name}
-                    aria-label={`Use ${name} theme`}
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setThemePreset(key)}
+                      title={name}
+                      aria-label={`Use ${name} theme`}
+                      className={[
+                        "group flex h-12 items-center justify-center transition-transform duration-200",
+                        active ? "scale-110" : "hover:scale-110",
+                      ].join(" ")}
+                    >
+                      <div
+                        className="flex h-7 w-11 overflow-hidden rounded-md border transition-shadow duration-200"
+                        style={{
+                          borderColor: active
+                            ? colors.primary
+                            : `${colors.primary}55`,
+                          boxShadow: active
+                            ? `0 0 0 2px ${colors.primary}63`
+                            : `0 0 0 0 ${colors.primary}00`,
+                        }}
+                      >
+                        <span
+                          className="h-full flex-1"
+                          style={{ background: colors.primary }}
+                        />
+                        <span
+                          className="h-full flex-1"
+                          style={{ background: colors.secondary }}
+                        />
+                        <span
+                          className="h-full flex-1"
+                          style={{ background: colors.surface }}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => setShowCustomTheme((open) => !open)}
+                  className="group flex h-12 items-center justify-center transition-transform duration-200 hover:scale-110"
+                  title="Add custom preset"
+                >
+                  <div
                     className={[
-                      "hover-lift flex h-11 items-center justify-center rounded-xl border transition",
-                      active
-                        ? "border-[var(--brand)] bg-[color:var(--surface-soft)] ring-2 ring-[var(--brand)]"
-                        : "border-[var(--field-border)] hover:bg-[color:var(--surface-soft)]",
+                      "flex h-7 w-11 items-center justify-center rounded-md border transition",
+                      showCustomTheme
+                        ? "border-[var(--brand)] bg-[var(--brand-soft)]"
+                        : "border-dashed border-[var(--field-border)] bg-transparent",
                     ].join(" ")}
                   >
-                    <div className="flex h-5 w-8 overflow-hidden rounded-md border border-black/10">
-                      <span
-                        className="h-full flex-1"
-                        style={{ background: colors.primary }}
-                      />
-                      <span
-                        className="h-full flex-1"
-                        style={{ background: colors.secondary }}
-                      />
-                      <span
-                        className="h-full flex-1"
-                        style={{ background: colors.surface }}
-                      />
-                    </div>
-                  </button>
-                );
-              })}
-
-              <button
-                type="button"
-                onClick={() => setShowCustomTheme((open) => !open)}
-                className="hover-lift flex h-11 items-center justify-center rounded-xl border border-dashed border-[var(--field-border)] text-lg font-semibold text-[color:var(--ink-muted)] transition hover:border-[var(--brand)] hover:text-[color:var(--ink-strong)]"
-                title="Add custom preset"
-              >
-                +
-              </button>
-            </div>
+                    {showCustomTheme ? (
+                      <FiX className="h-4 w-4 text-[var(--ink-soft)]" />
+                    ) : (
+                      <FiPlus className="h-4 w-4 text-[var(--ink-soft)]" />
+                    )}
+                  </div>
+                </button>
+              </div>
+            </>
           )}
 
           {showColors && showCustomTheme && (
@@ -204,12 +304,16 @@ export default function FlyerControls({
               />
 
               <div className="space-y-3">
-                {["primary", "secondary", "surface"].map((field) => (
+                {[
+                  ["primary", "Main Color"],
+                  ["secondary", "Accent Color"],
+                  ["surface", "Background"],
+                ].map(([field, label]) => (
                   <label
                     key={field}
                     className="flex items-center justify-between gap-3 text-sm font-medium text-[color:var(--ink-base)]"
                   >
-                    <span className="capitalize">{field}</span>
+                    <span>{label}</span>
 
                     <input
                       type="color"
@@ -248,131 +352,82 @@ export default function FlyerControls({
               onClick={() => setShowTextControls((prev) => !prev)}
               className="text-[var(--brand)] hover:text-[var(--brand-strong)]"
             >
-              {showTextControls ? (
-                <FiChevronDown className="h-4 w-4" />
-              ) : (
-                <FiChevronUp className="h-4 w-4" />
-              )}
+              <FiChevronDown
+                className={[
+                  "h-4 w-4 transition-transform duration-200",
+                  showTextControls ? "rotate-180" : "",
+                ].join(" ")}
+              />
             </button>
           </div>
 
           {showTextControls && (
-            <div className="space-y-3">
-              {activeTextFields.map((field) => (
-                <label key={field.key} className="block">
-                  <span className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]">
-                    {field.label}
-                  </span>
+            <>
+              <p className="mb-3 text-xs text-[var(--ink-muted)]">
+                Adjust wording and font sizes for this template.
+              </p>
+              <div className="space-y-3">
+                {activeTextFields.map((field) => (
+                  <label key={field.key} className="block">
+                    <span className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]">
+                      {field.label}
+                    </span>
 
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={
-                        templateCopy?.[template]?.[field.key]?.text ??
-                        field.defaultValue
-                      }
-                      onChange={(e) =>
-                        updateTextField(field, {
-                          text: e.target.value,
-                        })
-                      }
-                      className={[
-                        "w-full rounded-xl border bg-[color:var(--field-bg)] px-3 py-2 pr-10 text-sm text-[color:var(--ink-base)] transition outline-none",
-                        "border-[var(--field-border)]",
-                        "focus:border-[var(--brand)] focus:bg-[color:var(--surface-soft)] focus:ring-2 focus:ring-[var(--brand)]",
-                      ].join(" ")}
-                    />
-
-                    <div className="absolute top-1/2 right-3 flex -translate-y-1/2 flex-col items-center">
-                      <button
-                        type="button"
-                        onClick={() =>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={
+                          templateCopy?.[template]?.[field.key]?.text ??
+                          field.defaultValue
+                        }
+                        onChange={(e) =>
                           updateTextField(field, {
-                            size:
-                              (templateCopy?.[template]?.[field.key]?.size ??
-                                field.defaultSize) + 2,
+                            text: e.target.value,
                           })
                         }
-                        className="text-[11px] leading-none text-[var(--brand)] hover:text-[var(--brand-strong)]"
-                      >
-                        <FiChevronUp className="h-3.5 w-3.5" />
-                      </button>
+                        className={[
+                          "w-full rounded-xl border bg-[color:var(--field-bg)] px-3 py-2 pr-10 text-sm text-[color:var(--ink-base)] transition outline-none",
+                          "border-[var(--field-border)]",
+                          "focus:border-[var(--brand)] focus:bg-[color:var(--surface-soft)] focus:ring-2 focus:ring-[var(--brand)]",
+                        ].join(" ")}
+                      />
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateTextField(field, {
-                            size: Math.max(
-                              10,
-                              (templateCopy?.[template]?.[field.key]?.size ??
-                                field.defaultSize) - 2
-                            ),
-                          })
-                        }
-                        className="-mt-1 text-[11px] leading-none text-[var(--brand)] hover:text-[var(--brand-strong)]"
-                      >
-                        <FiChevronDown className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="absolute top-1/2 right-3 flex -translate-y-1/2 flex-col items-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateTextField(field, {
+                              size:
+                                (templateCopy?.[template]?.[field.key]?.size ??
+                                  field.defaultSize) + 2,
+                            })
+                          }
+                          className="text-[11px] leading-none text-[var(--brand)] hover:text-[var(--brand-strong)]"
+                        >
+                          <FiChevronUp className="h-3.5 w-3.5" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateTextField(field, {
+                              size: Math.max(
+                                10,
+                                (templateCopy?.[template]?.[field.key]?.size ??
+                                  field.defaultSize) - 2
+                              ),
+                            })
+                          }
+                          className="-mt-1 text-[11px] leading-none text-[var(--brand)] hover:text-[var(--brand-strong)]"
+                        >
+                          <FiChevronDown className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <div className="text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
-              Photos
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowPhotos((prev) => !prev)}
-              className="text-[var(--brand)] hover:text-[var(--brand-strong)]"
-            >
-              {showPhotos ? (
-                <FiChevronDown className="h-4 w-4" />
-              ) : (
-                <FiChevronUp className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-
-          {showPhotos && (
-            <div className="grid grid-cols-4 gap-2 lg:grid-cols-3">
-              {images.map((image, index) => {
-                const src = image?.preview || image?.src || image?.url || "";
-
-                return (
-                  <div
-                    key={src || index}
-                    draggable
-                    onDragStart={() => setDraggedIndex(index)}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => {
-                      if (draggedIndex === null || draggedIndex === index)
-                        return;
-                      reorderImages(draggedIndex, index);
-                      setDraggedIndex(null);
-                    }}
-                    onDragEnd={() => setDraggedIndex(null)}
-                    className="group relative aspect-square cursor-grab overflow-hidden rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)]"
-                  >
-                    <img
-                      src={src}
-                      alt={`Property photo ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-
-                    <div className="absolute top-1 left-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white">
-                      {index + 1}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  </label>
+                ))}
+              </div>
+            </>
           )}
         </section>
 

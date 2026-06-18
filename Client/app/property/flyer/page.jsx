@@ -114,7 +114,7 @@ export default function FlyerPage() {
 
   return (
     <div className="interactive-form min-h-[calc(100vh-80px)]">
-      <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
+      <div className="grid items-start gap-6 sm:grid-cols-[340px_minmax(0,1fr)]">
         <FlyerControls
           template={template}
           setTemplate={setTemplate}

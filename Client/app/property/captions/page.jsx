@@ -141,16 +141,21 @@ export default function CaptionsPage() {
   }
 
   return (
-    <div className="interactive-form rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.7)]">
-      <section className="relative z-20 mb-6">
+    <div className="interactive-form space-y-6">
+      <section
+        key={mode}
+        className="interactive-form relative z-20 rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.7)]"
+      >
         <h1 className="text-3xl font-semibold text-[color:var(--ink-strong)]">
           Social Captions
         </h1>
+
         <p className="mt-2 text-[color:var(--ink-soft)]">
           {mode === "ai"
             ? "Use Gemini to generate 3 caption versions from your listing details and selected photos."
             : "Use the local generator to create 3 caption versions from your listing details."}
         </p>
+
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <ModeMenu mode={mode} setMode={setMode} />
 
@@ -175,6 +180,7 @@ export default function CaptionsPage() {
             )}
           </button>
         </div>
+
         {mode === "ai" && images.length > 0 ? (
           <ImageSelector
             images={images}
@@ -182,22 +188,35 @@ export default function CaptionsPage() {
             toggleImageSelection={toggleImageSelection}
           />
         ) : null}
+
         {mode === "ai" && aiError ? (
           <p className="mt-2 text-xs text-red-400">{aiError}</p>
         ) : null}
       </section>
 
       {variants?.length ? (
-        <div className="space-y-6">
-          {variants.map((variant) => (
-            <ResultCard
-              key={variant.name}
-              variant={variant}
-              copied={copied}
-              copyVariant={copyVariant}
-            />
-          ))}
-        </div>
+        <section className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/82 p-6 shadow-[0_14px_28px_-24px_rgba(15,23,42,0.55)]">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-xs font-semibold tracking-[0.16em] text-[var(--ink-muted)] uppercase">
+              Generated Captions
+            </div>
+
+            <div className="text-xs text-[var(--ink-muted)]">
+              {variants.length} versions
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {variants.map((variant) => (
+              <ResultCard
+                key={variant.name}
+                variant={variant}
+                copied={copied}
+                copyVariant={copyVariant}
+              />
+            ))}
+          </div>
+        </section>
       ) : null}
     </div>
   );

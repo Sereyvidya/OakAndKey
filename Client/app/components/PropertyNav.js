@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import { hasCompleteFlyerData } from "@/app/lib/flyer/guards";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 const nav = [
   { href: "/property/general", label: "Information" },
@@ -21,7 +22,6 @@ export default function PropertyNav() {
   const images = usePropertyStore((s) => s.images);
 
   const canViewFlyer = hasCompleteFlyerData({ formData, images });
-
   const activeItem = nav.find((item) => pathname === item.href) ?? nav[0];
 
   useEffect(() => {
@@ -36,16 +36,13 @@ export default function PropertyNav() {
   }, []);
 
   const getHref = (item) => {
-    if (item.requiresCompleteInfo && !canViewFlyer) {
-      return pathname;
-    }
-
+    if (item.requiresCompleteInfo && !canViewFlyer) return pathname;
     return item.href;
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <nav className="hidden items-center gap-6 md:flex">
+      <nav className="hidden items-center gap-9 md:flex">
         {nav.map((item) => {
           const active = pathname === item.href;
           const blocked = item.requiresCompleteInfo && !canViewFlyer;
@@ -58,15 +55,25 @@ export default function PropertyNav() {
                 if (blocked) e.preventDefault();
               }}
               aria-disabled={blocked}
-              className={
+              className={[
+                "group relative pb-2 text-base font-semibold tracking-[0.02em] transition-colors duration-200",
                 active
-                  ? "font-semibold text-[var(--brand)]"
+                  ? "text-[var(--ink-strong)]"
                   : blocked
-                    ? "cursor-not-allowed font-semibold text-[color:var(--ink-soft)] opacity-50"
-                    : "font-semibold text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)]"
-              }
+                    ? "cursor-not-allowed text-[var(--ink-muted)] opacity-45"
+                    : "text-[var(--ink-soft)] hover:text-[var(--ink-strong)]",
+              ].join(" ")}
             >
               {item.label}
+
+              <span
+                className={[
+                  "absolute bottom-0 left-0 h-[2px] rounded-full bg-[var(--brand)] transition-all duration-300",
+                  active
+                    ? "w-full opacity-100"
+                    : "w-0 opacity-0 group-hover:w-full group-hover:opacity-60",
+                ].join(" ")}
+              />
             </Link>
           );
         })}
@@ -76,35 +83,62 @@ export default function PropertyNav() {
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
-          className="rounded-xl border border-[var(--card-border)] px-4 py-2 text-sm font-semibold"
+          className="border-b-[2px] border-[var(--brand)] px-1 pb-1 text-base font-semibold text-[var(--ink-strong)] transition-colors hover:text-[var(--brand-strong)] focus:outline-none"
         >
-          {activeItem.label} ▾
+          <span className="flex items-center gap-1">
+            {activeItem.label}
+            <FiChevronDown
+              className={[
+                "h-4 w-4 transition-transform duration-200",
+                open ? "rotate-180" : "",
+              ].join(" ")}
+            />
+          </span>
         </button>
 
         {open && (
-          <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)] p-2 shadow-lg">
-            {nav.map((item) => {
-              const blocked = item.requiresCompleteInfo && !canViewFlyer;
+          <div className="absolute right-0 z-30 mt-4 w-27 rounded-xl border border-[var(--card-border)] bg-[var(--surface)] px-3 py-2 shadow-[0_14px_30px_rgba(20,26,36,0.10)]">
+            {nav
+              .filter((item) => item.href !== pathname)
+              .map((item) => {
+                const active = pathname === item.href;
+                const blocked = item.requiresCompleteInfo && !canViewFlyer;
 
-              return (
-                <Link
-                  key={item.href}
-                  href={getHref(item)}
-                  onClick={(e) => {
-                    if (blocked) e.preventDefault();
-                    setOpen(false);
-                  }}
-                  aria-disabled={blocked}
-                  className={
-                    blocked
-                      ? "block cursor-not-allowed rounded-xl px-3 py-2 text-sm font-semibold opacity-50"
-                      : "block rounded-xl px-3 py-2 text-sm font-semibold hover:bg-[color:var(--cream)]"
-                  }
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+                return (
+                  <Link
+                    key={item.href}
+                    href={getHref(item)}
+                    onClick={(e) => {
+                      if (blocked) e.preventDefault();
+                      setOpen(false);
+                    }}
+                    aria-disabled={blocked}
+                    className={[
+                      "group block py-1.5 text-right text-base font-semibold transition-colors",
+                      active
+                        ? "text-[var(--ink-strong)]"
+                        : blocked
+                          ? "cursor-not-allowed text-[var(--ink-muted)] opacity-45"
+                          : "text-[var(--ink-soft)] hover:text-[var(--ink-strong)]",
+                    ].join(" ")}
+                  >
+                    <span className="inline-block">
+                      {item.label}
+
+                      <span
+                        className={[
+                          "mt-1 ml-auto block h-[2px] rounded-full bg-[var(--brand)] transition-all duration-300",
+                          active
+                            ? "w-full opacity-100"
+                            : blocked
+                              ? "w-0 opacity-0"
+                              : "w-0 opacity-0 group-hover:w-full group-hover:opacity-60",
+                        ].join(" ")}
+                      />
+                    </span>
+                  </Link>
+                );
+              })}
           </div>
         )}
       </div>
