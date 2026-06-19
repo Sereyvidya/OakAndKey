@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
         className={`${manrope.variable} ${sora.variable} font-sans antialiased`}
       >
         <header className="sticky top-0 z-30 border-b border-[var(--card-border)]/80 bg-[color:var(--surface)]/86 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-8 py-4">
+          <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-8 py-4">
             <div className="flex items-center gap-3">
               <Image
                 src="/Logo.png"

@@ -8,6 +8,7 @@ import { hasCompleteFlyerData } from "@/app/lib/flyer/guards";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 const nav = [
+  { href: "/", label: "About" },
   { href: "/property/general", label: "Information" },
   { href: "/property/flyer", label: "Flyer", requiresCompleteInfo: true },
   { href: "/property/captions", label: "Captions", requiresCompleteInfo: true },
