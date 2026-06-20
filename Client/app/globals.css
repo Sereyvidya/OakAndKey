@@ -360,3 +360,121 @@ input[type="number"]::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+.workflow-path {
+  stroke: var(--card-border);
+  stroke-width: 3;
+  fill: none;
+
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+
+  animation: drawWorkflow 3s ease-in-out forwards;
+}
+
+@keyframes drawWorkflow {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.hero-title-drop {
+  opacity: 0;
+  transform: translateY(-32px);
+  animation: heroDrop 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-title-drop-delay {
+  animation-delay: 0.25s;
+}
+
+.flyer-slide-in {
+  opacity: 0;
+  transform: translateX(90px);
+  animation: flyerSlideIn 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.flyer-slide-in:nth-child(1) {
+  animation-delay: 0.25s;
+}
+
+.flyer-slide-in:nth-child(2) {
+  animation-delay: 0.45s;
+}
+
+.flyer-slide-in:nth-child(3) {
+  animation-delay: 0.65s;
+}
+
+@keyframes heroDrop {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flyerSlideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.shine-button {
+  position: relative;
+  overflow: hidden;
+  animation: buttonBreathe 6s ease-in-out infinite;
+}
+
+.shine-button::after {
+  content: "";
+  position: absolute;
+
+  top: 0;
+  bottom: 0;
+  left: -40%;
+
+  width: 30%;
+
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
+
+  transform: skewX(-20deg);
+
+  animation: buttonShine 6s ease-in-out infinite;
+}
+
+@keyframes buttonBreathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  10% {
+    transform: scale(1.015);
+  }
+
+  20% {
+    transform: scale(1);
+  }
+}
+
+@keyframes buttonShine {
+  0% {
+    left: -120%;
+  }
+
+  20% {
+    left: 140%;
+  }
+
+  100% {
+    left: 140%;
+  }
+}
