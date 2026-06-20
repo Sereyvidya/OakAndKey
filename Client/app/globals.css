@@ -185,16 +185,24 @@ h6 {
 }
 
 .interactive-form {
-  animation: fadeUp 360ms ease-out both;
+  animation: fadeUp 550ms ease-out both;
 }
 
 .interactive-form section {
-  animation: fadeUp 420ms ease-out both;
+  animation: fadeUp 500ms ease-out both;
 }
 
-.interactive-form section:nth-of-type(1) { animation-delay: 70ms; }
-.interactive-form section:nth-of-type(2) { animation-delay: 120ms; }
-.interactive-form section:nth-of-type(3) { animation-delay: 170ms; }
+.interactive-form section:nth-of-type(1) {
+  animation-delay: 80ms;
+}
+
+.interactive-form section:nth-of-type(2) {
+  animation-delay: 160ms;
+}
+
+.interactive-form section:nth-of-type(3) {
+  animation-delay: 240ms;
+}
 
 .flyer-stage-enter {
   animation: stageReveal 260ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -369,7 +377,7 @@ input[type="number"] {
   stroke-dasharray: 1000;
   stroke-dashoffset: 1000;
 
-  animation: drawWorkflow 3s ease-in-out forwards;
+  animation: drawWorkflow 5s ease-in-out forwards;
 }
 
 @keyframes drawWorkflow {
