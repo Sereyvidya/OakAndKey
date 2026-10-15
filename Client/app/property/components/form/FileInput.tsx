@@ -1,3 +1,4 @@
+import { useT } from "@/app/lib/i18n/store";
 import type { ChangeEventHandler } from "react";
 import type { IconType } from "react-icons";
 
@@ -16,6 +17,7 @@ export default function FileInput({
   accept?: string;
   file?: { name?: string } | string | null;
 }) {
+  const { t } = useT();
   const inputId = `${label.replace(/\s+/g, "-").toLowerCase()}-input`;
 
   return (
@@ -33,7 +35,7 @@ export default function FileInput({
             <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
               <Icon size={16} />
             </span>
-            Choose File
+            {t("file.choose")}
           </label>
           <input
             id={inputId}
@@ -43,7 +45,7 @@ export default function FileInput({
             className="hidden"
           />
           <span className="text-sm text-[color:var(--ink-muted)]">
-            {(typeof file === "string" ? "" : file?.name) || "No file chosen"}
+            {(typeof file === "string" ? "" : file?.name) || t("file.none")}
           </span>
         </div>
 
@@ -52,7 +54,7 @@ export default function FileInput({
           onClick={onClear}
           className="text-sm text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)]"
         >
-          Clear
+          {t("file.clear")}
         </button>
       </div>
     </div>

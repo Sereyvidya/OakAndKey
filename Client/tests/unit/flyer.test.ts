@@ -106,7 +106,8 @@ describe("template copy", () => {
       expect(new Set(keys).size).toBe(keys.length);
       for (const f of fields) {
         expect(f.defaultSize).toBeGreaterThan(0);
-        expect(f.defaultValue).not.toBe("");
+        expect(f.defaultValue.en).not.toBe("");
+        expect(f.defaultValue.km).not.toBe("");
       }
     }
   });

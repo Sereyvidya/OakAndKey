@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useT } from "@/app/lib/i18n/store";
 import { ArrowRight } from "lucide-react";
 
 const templateCards = [
@@ -20,21 +23,22 @@ const templateCards = [
 ];
 
 export default function Home() {
+  const { t } = useT();
   return (
     <main className="min-h-[calc(100vh-80px)] overflow-hidden">
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-8 py-10 md:grid-cols-[4fr_6fr] md:gap-12 md:py-16">
         <div className="order-2 flex flex-col items-center text-center md:order-1 md:items-start md:text-left">
           <h1 className="leading-[0.92] font-semibold tracking-tight text-[var(--ink-strong)]">
             <span className="hero-title-drop block text-[clamp(2.75rem,7vw,4.5rem)] whitespace-nowrap">
-              Less formatting.
+              {t("home.title1")}
             </span>
             <span className="hero-title-drop hero-title-drop-delay block text-[clamp(2.75rem,7vw,4.5rem)] whitespace-nowrap">
-              More selling.
+              {t("home.title2")}
             </span>
           </h1>
 
           <p className="mt-5 max-w-lg text-base leading-7 text-[var(--ink-soft)] md:text-lg md:leading-8">
-            One listing. Everything you need to market it.
+            {t("home.tagline")}
           </p>
 
           <div className="relative mt-8 w-full max-w-md">
@@ -57,21 +61,9 @@ export default function Home() {
 
             <div className="space-y-10">
               {[
-                [
-                  "1",
-                  "Add listing details",
-                  "Address, price, beds, baths, photos.",
-                ],
-                [
-                  "2",
-                  "Choose a flyer style",
-                  "Pick a polished template that fits the home.",
-                ],
-                [
-                  "3",
-                  "Generate captions",
-                  "Create ready-to-post marketing copy instantly.",
-                ],
+                ["1", t("home.step1.title"), t("home.step1.body")],
+                ["2", t("home.step2.title"), t("home.step2.body")],
+                ["3", t("home.step3.title"), t("home.step3.body")],
               ].map(([step, title, body]) => (
                 <div
                   key={step}
@@ -98,7 +90,7 @@ export default function Home() {
             href="/property/general"
             className="shine-button hover-lift mt-8 inline-flex w-full max-w-md items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-5 py-3 text-sm font-bold text-[#0b0f14] hover:bg-[var(--brand-strong)]"
           >
-            Get Started
+            {t("home.cta")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

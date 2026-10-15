@@ -19,7 +19,14 @@ interface FlyerPreviewProps extends FlyerTemplateProps {
 
 const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
   function FlyerPreview(
-    { formData, images, template = "showcase", theme, templateCopy },
+    {
+      formData,
+      images,
+      template = "showcase",
+      theme,
+      templateCopy,
+      lang = "en",
+    },
     exportRef
   ) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -69,6 +76,8 @@ const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
             <div
               key={`${template}-${theme?.primary}-${theme?.secondary}-${theme?.surface}`}
               ref={exportRef}
+              lang={lang}
+              data-flyer-lang={lang}
               className="flyer-stage-enter h-full w-full overflow-hidden bg-white shadow-[0_40px_80px_rgba(20,26,36,0.18)]"
             >
               <div className="relative h-full w-full">
@@ -77,6 +86,7 @@ const FlyerPreview = forwardRef<HTMLDivElement, FlyerPreviewProps>(
                   images={images}
                   theme={theme}
                   templateCopy={templateCopy}
+                  lang={lang}
                 />
               </div>
             </div>

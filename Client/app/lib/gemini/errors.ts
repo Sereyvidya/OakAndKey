@@ -31,8 +31,24 @@ export const USER_MESSAGES: Record<ErrorCode, string> = {
   INTERNAL: "Something went wrong on our side. Please try again.",
 };
 
-export function userMessage(code: ErrorCode | undefined): string {
-  return USER_MESSAGES[code ?? "INTERNAL"] ?? USER_MESSAGES.INTERNAL;
+export const USER_MESSAGES_KM: Record<ErrorCode, string> = {
+  MISSING_API_KEY: "មុខងារ AI មិនទាន់ត្រូវបានតំឡើងនៅលើម៉ាស៊ីនមេនេះទេ។",
+  BAD_REQUEST:
+    "សំណើនេះហាក់ដូចជាមិនត្រឹមត្រូវ។ សូមពិនិត្យព័ត៌មានអចលនទ្រព្យ រួចព្យាយាមម្តងទៀត។",
+  TIMEOUT: "AI ឆ្លើយតបយូរពេក។ សូមព្យាយាមម្តងទៀត។",
+  RATE_LIMITED: "AI កំពុងមមាញឹក។ សូមរង់ចាំបន្តិច រួចព្យាយាមម្តងទៀត។",
+  UPSTREAM_ERROR: "សេវា AI មានបញ្ហា។ សូមព្យាយាមម្តងទៀតក្នុងពេលឆាប់ៗ។",
+  INVALID_OUTPUT:
+    "AI បានឆ្លើយតបមកជាអ្វីដែលយើងមិនអាចប្រើបាន។ សូមព្យាយាមម្តងទៀត។",
+  INTERNAL: "មានអ្វីមួយខុសប្រក្រតីនៅខាងយើង។ សូមព្យាយាមម្តងទៀត។",
+};
+
+export function userMessage(
+  code: ErrorCode | undefined,
+  lang: "en" | "km" = "en"
+): string {
+  const table = lang === "km" ? USER_MESSAGES_KM : USER_MESSAGES;
+  return table[code ?? "INTERNAL"] ?? table.INTERNAL;
 }
 
 export class GeminiError extends Error {

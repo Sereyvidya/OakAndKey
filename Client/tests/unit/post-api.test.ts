@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { postApi } from "@/app/lib/gemini/postApi";
-import { USER_MESSAGES } from "@/app/lib/gemini/errors";
+import { USER_MESSAGES, USER_MESSAGES_KM } from "@/app/lib/gemini/errors";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -39,5 +39,16 @@ describe("postApi (what the UI shows)", () => {
   it("handles being offline", async () => {
     stub(new TypeError("Failed to fetch"));
     await expect(postApi("/x", {})).rejects.toThrow(/reach the server/);
+  });
+});
+
+describe("postApi in Khmer", () => {
+  it("shows Khmer text for offline and for non-JSON errors", async () => {
+    stub(new TypeError("Failed to fetch"));
+    await expect(postApi("/x", {}, "km")).rejects.toThrow(/[ក-៿]/);
+    stub(new Response("<html/>", { status: 504 }));
+    await expect(postApi("/x", {}, "km")).rejects.toThrow(
+      USER_MESSAGES_KM.TIMEOUT
+    );
   });
 });

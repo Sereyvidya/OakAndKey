@@ -2,6 +2,8 @@
 
 import { Josefin_Sans } from "next/font/google";
 import type { FlyerTemplateProps } from "@/app/lib/types";
+import { defaultSize, defaultText } from "@/app/lib/flyer/templateCopy";
+import { factsLine } from "@/app/lib/flyer/labels";
 import { cleanText } from "@/app/lib/listing/format";
 import { buildFlyerViewModel } from "@/app/lib/flyer/viewModel";
 import { FLYER_COLORS } from "@/app/lib/flyer/theme";
@@ -21,24 +23,29 @@ export default function FlyerTemplateGallery({
   images,
   theme = FLYER_COLORS,
   templateCopy = {},
+  lang = "en",
 }: FlyerTemplateProps) {
+  const d = (key: string) => defaultText("gallery", key, lang);
+  const ds = (key: string) => defaultSize("gallery", key, lang);
   const COLORS = theme;
   const copy = templateCopy?.gallery || {};
 
-  const priceLabel = cleanText(copy.priceLabel?.text) || "Offered at";
-  const priceLabelSize = copy.priceLabel?.size || 20;
+  const priceLabel = cleanText(copy.priceLabel?.text) || d("priceLabel");
+  const priceLabelSize = copy.priceLabel?.size || ds("priceLabel");
 
-  const headlineScript = cleanText(copy.headlineScript?.text) || "New";
-  const headlineScriptSize = copy.headlineScript?.size || 100;
+  const headlineScript =
+    cleanText(copy.headlineScript?.text) || d("headlineScript");
+  const headlineScriptSize = copy.headlineScript?.size || ds("headlineScript");
 
-  const headlineMain = cleanText(copy.headlineMain?.text) || "Listing";
-  const headlineMainSize = copy.headlineMain?.size || 70;
+  const headlineMain = cleanText(copy.headlineMain?.text) || d("headlineMain");
+  const headlineMainSize = copy.headlineMain?.size || ds("headlineMain");
 
-  const propertyTitle = cleanText(copy.propertyTitle?.text) || "The Property";
-  const propertyTitleSize = copy.propertyTitle?.size || 46;
+  const propertyTitle =
+    cleanText(copy.propertyTitle?.text) || d("propertyTitle");
+  const propertyTitleSize = copy.propertyTitle?.size || ds("propertyTitle");
 
-  const agentRole = cleanText(copy.agentRole?.text) || "Residential Specialist";
-  const agentRoleSize = copy.agentRole?.size || 14;
+  const agentRole = cleanText(copy.agentRole?.text) || d("agentRole");
+  const agentRoleSize = copy.agentRole?.size || ds("agentRole");
 
   const {
     fullAddress,
@@ -59,7 +66,7 @@ export default function FlyerTemplateGallery({
     isDefaultLogo,
     socialLink,
     qrSrc,
-  } = buildFlyerViewModel(formData, images);
+  } = buildFlyerViewModel(formData, images, { lang });
 
   const photoCount = galleryPhotos.length;
 
@@ -171,7 +178,7 @@ export default function FlyerTemplateGallery({
 
         <div className="absolute top-[510px] left-[50px] z-20 w-[470px]">
           <div
-            className="mt-16 leading-[0.75] italic"
+            className={`${lang === "km" ? "mt-2" : "mt-16"} leading-[0.75] italic`}
             style={{
               color: COLORS.secondary,
               fontFamily: "Georgia, serif",
@@ -218,7 +225,7 @@ export default function FlyerTemplateGallery({
                 className="text-[18px] tracking-[0.03em] whitespace-nowrap uppercase"
                 style={{ color: COLORS.secondary }}
               >
-                {beds} BED | {baths} BATH | {size} {sizeUnit}
+                {factsLine(lang, { beds, baths, size, sizeUnit, upper: true })}
               </div>
             </div>
 

@@ -1,5 +1,6 @@
 import type { CaptionVariant, ListingForm, ListingImage } from "../types";
 import { cleanText, formatCurrency, toNumber } from "../listing/format";
+import type { Lang } from "../i18n/strings";
 
 function parseAreaFromAddress(address: string) {
   const parts = cleanText(address)
@@ -36,11 +37,13 @@ function makeHashtags({
   area,
   photoTags,
   companyName,
+  lang = "en",
 }: {
   propertyType: string;
   area: string;
   photoTags: string[];
   companyName: string;
+  lang?: Lang;
 }) {
   const tags = new Set([
     "JustListed",
@@ -48,13 +51,19 @@ function makeHashtags({
     "HomeForSale",
     "RealEstate",
   ]);
+  // Khmer posts keep English real-estate tags (widely searched) plus location.
+  if (lang === "km") tags.add("CambodiaRealEstate");
 
   const type = cleanText(propertyType).toLowerCase();
   if (type === "house") tags.add("HouseForSale");
   if (type === "condo") tags.add("CondoForSale");
 
   if (area) {
-    const normalized = area.replace(/[^a-zA-Z0-9]/g, "");
+    // Khmer place names are kept as-is; \p{M} keeps Khmer vowel/sign marks.
+    const normalized =
+      lang === "km"
+        ? area.replace(/[^\p{L}\p{M}\p{N}]/gu, "")
+        : area.replace(/[^a-zA-Z0-9]/g, "");
     if (normalized) tags.add(normalized);
   }
 
@@ -95,7 +104,8 @@ function buildPropertyFacts(formData: Partial<ListingForm>) {
 
 export function generateCaptionVariants(
   formData: Partial<ListingForm>,
-  images: Pick<ListingImage, "name">[] = []
+  images: Pick<ListingImage, "name">[] = [],
+  lang: Lang = "en"
 ): CaptionVariant[] {
   const title = cleanText(formData.propertyTitle) || "New listing";
   const area = parseAreaFromAddress(cleanText(formData.address));
@@ -109,7 +119,19 @@ export function generateCaptionVariants(
     area,
     photoTags,
     companyName: cleanText(formData.agentCompanyName),
+    lang,
   });
+
+  if (lang === "km") {
+    return khmerVariants({
+      formData,
+      images,
+      area,
+      price,
+      photoTags,
+      hashtags,
+    });
+  }
 
   const lead = `${title}${area ? ` in ${area}` : ""}`;
   const factsLine = [type, facts].filter(Boolean).join(" • ");
@@ -155,6 +177,94 @@ export function generateCaptionVariants(
       }${priceLine}\nContact for details.`,
       hashtags,
       note: photoLine,
+    },
+  ];
+}
+
+const KM_PHOTO_TAGS: Record<string, string> = {
+  kitchen: "ផ្ទះបាយ",
+  bedroom: "បន្ទប់គេង",
+  bathroom: "បន្ទប់ទឹក",
+  livingroom: "បន្ទប់ទទួលភ្ញៀវ",
+  exterior: "ផ្នែកខាងក្រៅ",
+  pool: "អាងហែលទឹក",
+  garden: "សួនច្បារ",
+  balcony: "យ៉រ",
+};
+
+const KM_TYPES: Record<string, string> = { house: "ផ្ទះ", condo: "ខុនដូ" };
+
+/** Khmer versions of the three local caption templates. */
+function khmerVariants({
+  formData,
+  images,
+  area,
+  price,
+  photoTags,
+  hashtags,
+}: {
+  formData: Partial<ListingForm>;
+  images: Pick<ListingImage, "name">[];
+  area: string;
+  price: string;
+  photoTags: string[];
+  hashtags: string[];
+}): CaptionVariant[] {
+  const title = cleanText(formData.propertyTitle) || "បញ្ជីថ្មី";
+  const type = cleanText(formData.propertyType);
+  const beds = toNumber(formData.bedrooms);
+  const baths = toNumber(formData.bathrooms);
+  const size = toNumber(formData.size);
+  const unit = formData.sizeUnit === "sqft" ? "ft²" : "m²";
+
+  const facts = [
+    KM_TYPES[type] ?? "",
+    beds !== null ? `${beds} បន្ទប់គេង` : "",
+    baths !== null ? `${baths} បន្ទប់ទឹក` : "",
+    size !== null ? `${size} ${unit}` : "",
+  ]
+    .filter(Boolean)
+    .join(" • ");
+
+  const lead = `${title}${area ? ` នៅ ${area}` : ""}`;
+  const priceLine = price ? `តម្លៃលក់ ${price}។` : "សូមទាក់ទងសួរតម្លៃ។";
+  const description =
+    cleanText(formData.description) ||
+    "ប្លង់ដែលរចនាយ៉ាងប្រុងប្រយ័ត្ន សម្រាប់ការរស់នៅប្រចាំថ្ងៃប្រកបដោយផាសុកភាព។";
+
+  const note =
+    images.length > 0
+      ? `ចំណុចពិសេសនៃរូបថត៖ ${
+          photoTags.length
+            ? photoTags.map((t) => KM_PHOTO_TAGS[t] ?? t).join(" ")
+            : `រូបថតអចលនទ្រព្យ ${images.length} សន្លឹក`
+        }។`
+      : "សូមផ្ទុកឡើងរូបថត ដើម្បីបង្កើតចំណុចពិសេសតាមរូបថត។";
+
+  return [
+    {
+      name: "ទម្រង់ 1 · បញ្ជីអចលនទ្រព្យពិសេស",
+      caption: `${lead}\n\n${priceLine} ${
+        facts ? `លក្ខណៈពិសេស៖ ${facts}។ ` : ""
+      }${description}\n\nសូមទាក់ទងភ្នាក់ងារដើម្បីកក់ពេលទស្សនាផ្ទាល់។`,
+      hashtags,
+      note,
+    },
+    {
+      name: "ទម្រង់ 2 · ជីវិតកក់ក្តៅ",
+      caption: `សូមស្វាគមន៍មកកាន់ ${lead}។\n\n${description}\n\n${
+        facts ? `${facts}។ ` : ""
+      }${priceLine}\nទាក់ទងមកយើងដើម្បីដឹងព័ត៌មានបន្ថែម។`,
+      hashtags,
+      note,
+    },
+    {
+      name: "ទម្រង់ 3 · ខ្លី និងត្រង់ៗ",
+      caption: `ទើបតែដាក់លក់៖ ${lead}។\n${
+        facts ? `${facts}។ ` : ""
+      }${priceLine}\nទាក់ទងសម្រាប់ព័ត៌មានលម្អិត។`,
+      hashtags,
+      note,
     },
   ];
 }

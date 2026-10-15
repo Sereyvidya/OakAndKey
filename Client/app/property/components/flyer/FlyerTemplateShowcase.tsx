@@ -2,6 +2,8 @@
 
 import { Josefin_Sans } from "next/font/google";
 import type { FlyerTemplateProps } from "@/app/lib/types";
+import { defaultSize, defaultText } from "@/app/lib/flyer/templateCopy";
+import { factsLine } from "@/app/lib/flyer/labels";
 import { cleanText } from "@/app/lib/listing/format";
 import { buildFlyerViewModel } from "@/app/lib/flyer/viewModel";
 import { FLYER_COLORS } from "@/app/lib/flyer/theme";
@@ -21,19 +23,21 @@ export default function FlyerTemplateShowcase({
   images,
   theme = FLYER_COLORS,
   templateCopy = {},
+  lang = "en",
 }: FlyerTemplateProps) {
+  const d = (key: string) => defaultText("showcase", key, lang);
+  const ds = (key: string) => defaultSize("showcase", key, lang);
   const COLORS = theme;
   const copy = templateCopy?.showcase || {};
 
-  const headline = cleanText(copy.headline?.text) || "New Home For Sale";
-  const headlineSize = copy.headline?.size || 44;
+  const headline = cleanText(copy.headline?.text) || d("headline");
+  const headlineSize = copy.headline?.size || ds("headline");
 
-  const sectionTitle =
-    cleanText(copy.sectionTitle?.text) || "Property Overview";
-  const sectionTitleSize = copy.sectionTitle?.size || 32;
+  const sectionTitle = cleanText(copy.sectionTitle?.text) || d("sectionTitle");
+  const sectionTitleSize = copy.sectionTitle?.size || ds("sectionTitle");
 
-  const agentRole = cleanText(copy.agentRole?.text) || "Residential Specialist";
-  const agentRoleSize = copy.agentRole?.size || 14;
+  const agentRole = cleanText(copy.agentRole?.text) || d("agentRole");
+  const agentRoleSize = copy.agentRole?.size || ds("agentRole");
 
   const {
     address,
@@ -55,8 +59,11 @@ export default function FlyerTemplateShowcase({
     isDefaultLogo,
     qrSrc,
   } = buildFlyerViewModel(formData, images, {
+    lang,
     defaultDescription:
-      "This spacious residence offers a practical floor plan, bright interiors, and quality finishes for modern family living.",
+      lang === "en"
+        ? "This spacious residence offers a practical floor plan, bright interiors, and quality finishes for modern family living."
+        : undefined,
   });
 
   const [t1, t2, t3] = galleryPhotos;
@@ -128,7 +135,7 @@ export default function FlyerTemplateShowcase({
             </div>
 
             <div className="mt-3 text-[20px] tracking-wide uppercase">
-              {beds} BED | {baths} BATH | {size} {sizeUnit}
+              {factsLine(lang, { beds, baths, size, sizeUnit, upper: true })}
             </div>
           </div>
         </div>

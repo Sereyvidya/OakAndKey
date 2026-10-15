@@ -7,6 +7,7 @@ import {
   jsonResponse,
   mockFetchSequence,
   postRequest,
+  promptOfCall,
 } from "./helpers";
 
 const goodModelOutput = JSON.stringify({
@@ -96,5 +97,60 @@ describe("POST /api/captions/generate", () => {
     expect(res.status).toBe(500);
     expect((await res.json()).code).toBe("MISSING_API_KEY");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/captions/generate: language", () => {
+  it("asks for English by default", async () => {
+    const fetchMock = mockFetchSequence(ok());
+    await POST(postRequest({ formData: validForm }));
+    const prompt = promptOfCall(fetchMock, 0);
+    expect(prompt).toContain("50-120 words");
+    expect(prompt).not.toContain("Khmer");
+  });
+
+  it("passes the Khmer language option into the prompt", async () => {
+    const fetchMock = mockFetchSequence(ok());
+    await POST(postRequest({ formData: validForm, language: "km" }));
+    const prompt = promptOfCall(fetchMock, 0);
+    expect(prompt).toContain("natural Khmer");
+    expect(prompt).toContain("#CambodiaRealEstate");
+    expect(prompt).not.toContain("50-120 words");
+  });
+
+  it("returns Khmer captions intact", async () => {
+    mockFetchSequence(
+      jsonResponse(
+        geminiBody(
+          JSON.stringify({
+            variants: [
+              {
+                name: "ទម្រង់ 1",
+                caption: "ផ្ទះថ្មីនៅភ្នំពេញ តម្លៃ $485,000។",
+                hashtags: ["RealEstate", "ភ្នំពេញ"],
+                note: "រូបថតបន្ទប់ទទួលភ្ញៀវ",
+              },
+            ],
+          })
+        )
+      )
+    );
+    const res = await POST(
+      postRequest({ formData: validForm, language: "km" })
+    );
+    const { variants } = await res.json();
+    expect(variants[0].caption).toBe("ផ្ទះថ្មីនៅភ្នំពេញ តម្លៃ $485,000។");
+    expect(variants[0].hashtags).toEqual(["#RealEstate", "#ភ្នំពេញ"]);
+  });
+
+  it("returns error text in Khmer for a Khmer request", async () => {
+    mockFetchSequence(jsonResponse({}, 429));
+    const res = await POST(
+      postRequest({ formData: validForm, language: "km" })
+    );
+    expect(res.status).toBe(429);
+    const json = await res.json();
+    expect(json.code).toBe("RATE_LIMITED");
+    expect(json.error).toMatch(/[ក-៿]/);
   });
 });

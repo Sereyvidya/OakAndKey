@@ -498,3 +498,49 @@ input[type="number"] {
     left: 140%;
   }
 }
+
+/* Khmer: use the Khmer font and drop styling that breaks Khmer shaping. */
+html[lang="km"] body,
+html[lang="km"] h1,
+html[lang="km"] h2,
+html[lang="km"] h3,
+html[lang="km"] h4,
+html[lang="km"] button,
+html[lang="km"] input,
+html[lang="km"] textarea,
+html[lang="km"] select {
+  font-family: var(--font-khmer), var(--font-manrope), sans-serif;
+}
+
+html[lang="km"] body * {
+  /* Letter-spacing pulls Khmer clusters apart; uppercase has no meaning. */
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+html[lang="km"] body {
+  line-height: 1.7;
+}
+
+/*
+ * Khmer flyers. The flyer canvas is a fixed 1080x1350 design built for Latin
+ * type, so for Khmer we: use the Khmer font everywhere (including headline
+ * fonts set inline), drop tracking/uppercase (they break Khmer clusters), and
+ * give lines more height because Khmer vowels and subscripts stack tall.
+ */
+[data-flyer-lang="km"],
+[data-flyer-lang="km"] * {
+  font-family: var(--font-khmer), sans-serif !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  font-style: normal !important;
+}
+
+/* Only tight Latin line-heights need loosening; roomier ones are left alone. */
+[data-flyer-lang="km"] [class*="leading-none"],
+[data-flyer-lang="km"] [class*="leading-tight"],
+[data-flyer-lang="km"] [class*="leading-[0"],
+[data-flyer-lang="km"] [class*="leading-[1]"],
+[data-flyer-lang="km"] [class*="leading-[1.0"] {
+  line-height: 1.3 !important;
+}

@@ -2,6 +2,8 @@
 
 import { Josefin_Sans } from "next/font/google";
 import type { FlyerTemplateProps } from "@/app/lib/types";
+import { defaultSize, defaultText } from "@/app/lib/flyer/templateCopy";
+import { factsLine } from "@/app/lib/flyer/labels";
 import { cleanText } from "@/app/lib/listing/format";
 import { buildFlyerViewModel } from "@/app/lib/flyer/viewModel";
 import { FLYER_COLORS } from "@/app/lib/flyer/theme";
@@ -22,37 +24,40 @@ export default function FlyerTemplateModern({
   images,
   theme = FLYER_COLORS,
   templateCopy = {},
+  lang = "en",
 }: FlyerTemplateProps) {
+  const d = (key: string) => defaultText("modern", key, lang);
+  const ds = (key: string) => defaultSize("modern", key, lang);
   const COLORS = theme;
   const copy = templateCopy?.modern || {};
 
-  const headlineSmall = cleanText(copy.headlineSmall?.text) || "Modern Home";
-  const headlineSmallSize = copy.headlineSmall?.size || 64;
+  const headlineSmall =
+    cleanText(copy.headlineSmall?.text) || d("headlineSmall");
+  const headlineSmallSize = copy.headlineSmall?.size || ds("headlineSmall");
 
-  const headlineLarge = cleanText(copy.headlineLarge?.text) || "For Sale";
-  const headlineLargeSize = copy.headlineLarge?.size || 78;
+  const headlineLarge =
+    cleanText(copy.headlineLarge?.text) || d("headlineLarge");
+  const headlineLargeSize = copy.headlineLarge?.size || ds("headlineLarge");
 
-  const tagline =
-    cleanText(copy.tagline?.text) || "A Home That Fits Your Lifestyle";
-  const taglineSize = copy.tagline?.size || 32;
+  const tagline = cleanText(copy.tagline?.text) || d("tagline");
+  const taglineSize = copy.tagline?.size || ds("tagline");
 
-  const taglineBody =
-    cleanText(copy.taglineBody?.text) ||
-    "Enjoy spacious interiors, modern touches, and a layout designed for convenience and comfort.";
-  const taglineBodySize = copy.taglineBody?.size || 19;
+  const taglineBody = cleanText(copy.taglineBody?.text) || d("taglineBody");
+  const taglineBodySize = copy.taglineBody?.size || ds("taglineBody");
 
-  const aboutTitle = cleanText(copy.aboutTitle?.text) || "About The Property";
-  const aboutTitleSize = copy.aboutTitle?.size || 30;
+  const aboutTitle = cleanText(copy.aboutTitle?.text) || d("aboutTitle");
+  const aboutTitleSize = copy.aboutTitle?.size || ds("aboutTitle");
 
-  const priceLabel = cleanText(copy.priceLabel?.text) || "Offered At";
-  const priceLabelSize = copy.priceLabel?.size || 30;
+  const priceLabel = cleanText(copy.priceLabel?.text) || d("priceLabel");
+  const priceLabelSize = copy.priceLabel?.size || ds("priceLabel");
 
   const appointmentLabel =
-    cleanText(copy.appointmentLabel?.text) || "Call for appointment";
-  const appointmentLabelSize = copy.appointmentLabel?.size || 12;
+    cleanText(copy.appointmentLabel?.text) || d("appointmentLabel");
+  const appointmentLabelSize =
+    copy.appointmentLabel?.size || ds("appointmentLabel");
 
-  const agentRole = cleanText(copy.agentRole?.text) || "Residential Specialist";
-  const agentRoleSize = copy.agentRole?.size || 14;
+  const agentRole = cleanText(copy.agentRole?.text) || d("agentRole");
+  const agentRoleSize = copy.agentRole?.size || ds("agentRole");
 
   const {
     fullAddress,
@@ -73,7 +78,7 @@ export default function FlyerTemplateModern({
     isDefaultLogo,
     socialLink,
     qrSrc,
-  } = buildFlyerViewModel(formData, images);
+  } = buildFlyerViewModel(formData, images, { lang });
 
   return (
     <div
@@ -239,7 +244,7 @@ export default function FlyerTemplateModern({
               className="mt-1 text-[24px] leading-none uppercase"
               style={{ color: COLORS.secondary }}
             >
-              {beds} Bed | {baths} Bath | {size} {sizeUnit}
+              {factsLine(lang, { beds, baths, size, sizeUnit, upper: false })}
             </div>
           </div>
         </div>
