@@ -24,6 +24,7 @@ import type {
   ListingForm,
   ListingImage,
 } from "@/app/lib/types";
+import { postApi } from "@/app/lib/gemini/postApi";
 import { composeAddress } from "@/app/lib/address";
 import ErrorText from "./ErrorText";
 import FileInput from "./FileInput";
@@ -260,24 +261,13 @@ export default function PropertyForm({
       setIsRewording(true);
       setRewordError("");
 
-      const resp = await fetch("/api/descriptions/rewrite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          formData,
-          description: formData.description || "",
-        } satisfies DescriptionRequest),
-      });
-      const data: DescriptionResponse = await resp.json();
-      if (!resp.ok || "error" in data) {
-        throw new Error(
-          ("error" in data && data.error) || "Failed to reword description."
-        );
-      }
-      const rewritten = (data.description || "").trim();
-      if (!rewritten) {
-        throw new Error("No rewritten description returned.");
-      }
+      const data = await postApi<
+        Extract<DescriptionResponse, { description: string }>
+      >("/api/descriptions/rewrite", {
+        formData,
+        description: formData.description || "",
+      } satisfies DescriptionRequest);
+      const rewritten = data.description.trim();
 
       onInputChange({
         target: { name: "description", value: rewritten.slice(0, 400) },

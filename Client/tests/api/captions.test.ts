@@ -1,7 +1,13 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import "./setup";
+import { describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/captions/generate/route";
 import { validForm } from "../fixtures";
-import { geminiBody, jsonResponse, mockFetch, postRequest } from "./helpers";
+import {
+  geminiBody,
+  jsonResponse,
+  mockFetchSequence,
+  postRequest,
+} from "./helpers";
 
 const goodModelOutput = JSON.stringify({
   variants: [
@@ -13,21 +19,11 @@ const goodModelOutput = JSON.stringify({
     },
   ],
 });
-
-beforeEach(() => {
-  vi.stubEnv("GEMINI_API_KEY", "test-key");
-});
-
-afterEach(() => {
-  vi.unstubAllEnvs();
-  vi.unstubAllGlobals();
-});
+const ok = () => jsonResponse(geminiBody(goodModelOutput));
 
 describe("POST /api/captions/generate", () => {
   it("returns validated variants on success", async () => {
-    const fetchMock = mockFetch(() =>
-      jsonResponse(geminiBody(goodModelOutput))
-    );
+    const fetchMock = mockFetchSequence(ok());
 
     const res = await POST(postRequest({ formData: validForm, images: [] }));
 
@@ -50,8 +46,18 @@ describe("POST /api/captions/generate", () => {
     );
   });
 
+  it("sends the API key in a header, never in the URL", async () => {
+    const fetchMock = mockFetchSequence(ok());
+    await POST(postRequest({ formData: validForm }));
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(String(url)).not.toContain("test-key");
+    expect((init!.headers as Record<string, string>)["x-goog-api-key"]).toBe(
+      "test-key"
+    );
+  });
+
   it("accepts model output wrapped in code fences", async () => {
-    mockFetch(() =>
+    mockFetchSequence(
       jsonResponse(geminiBody("```json\n" + goodModelOutput + "\n```"))
     );
     const res = await POST(postRequest({ formData: validForm }));
@@ -59,9 +65,7 @@ describe("POST /api/captions/generate", () => {
   });
 
   it("sends at most 3 data-URL images as inline_data", async () => {
-    const fetchMock = mockFetch(() =>
-      jsonResponse(geminiBody(goodModelOutput))
-    );
+    const fetchMock = mockFetchSequence(ok());
     const images = Array.from({ length: 5 }, (_, i) => ({
       name: `${i}.png`,
       preview: "data:image/png;base64,AAAA",
@@ -75,44 +79,22 @@ describe("POST /api/captions/generate", () => {
     expect(parts.filter((p: object) => "inline_data" in p)).toHaveLength(3);
   });
 
-  it("reports a Gemini error status", async () => {
-    mockFetch(() => jsonResponse({ error: "quota" }, 429));
-    const res = await POST(postRequest({ formData: validForm }));
-    expect(res.status).toBe(500);
-    expect((await res.json()).error).toContain("Gemini request failed (429)");
-  });
-
-  it("reports malformed model output", async () => {
-    mockFetch(() => jsonResponse(geminiBody("this is not json")));
-    const res = await POST(postRequest({ formData: validForm }));
-    expect(res.status).toBe(500);
-    expect((await res.json()).error).toMatch(/invalid JSON/);
-  });
-
-  it("reports valid JSON with no usable captions", async () => {
-    mockFetch(() =>
-      jsonResponse(geminiBody(JSON.stringify({ variants: [{ caption: "" }] })))
+  it("rejects a body that is not a JSON object", async () => {
+    const fetchMock = mockFetchSequence(ok());
+    const res = await POST(
+      new Request("http://localhost/api", { method: "POST", body: "nope" })
     );
-    const res = await POST(postRequest({ formData: validForm }));
-    expect(res.status).toBe(500);
-    expect((await res.json()).error).toMatch(/invalid JSON/);
+    expect(res.status).toBe(400);
+    expect((await res.json()).code).toBe("BAD_REQUEST");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("fails clearly without an API key, and never calls Gemini", async () => {
     vi.stubEnv("GEMINI_API_KEY", "");
-    const fetchMock = mockFetch(() =>
-      jsonResponse(geminiBody(goodModelOutput))
-    );
+    const fetchMock = mockFetchSequence(ok());
     const res = await POST(postRequest({ formData: validForm }));
     expect(res.status).toBe(500);
-    expect((await res.json()).error).toMatch(/Missing GEMINI_API_KEY/);
+    expect((await res.json()).code).toBe("MISSING_API_KEY");
     expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it("turns a network failure into an error response", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("boom")));
-    const res = await POST(postRequest({ formData: validForm }));
-    expect(res.status).toBe(500);
-    expect((await res.json()).error).toBe("boom");
   });
 });

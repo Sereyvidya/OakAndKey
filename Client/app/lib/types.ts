@@ -1,3 +1,5 @@
+import type { ErrorCode } from "./gemini/errors";
+
 export type SizeUnit = "sqm" | "sqft";
 
 /** An uploaded or sample image; `preview` is a data URL or public path. */
@@ -83,16 +85,20 @@ export interface CaptionRequest {
   images: Pick<ListingImage, "name" | "preview">[];
 }
 
-export type CaptionResponse =
-  | { variants: CaptionVariant[] }
-  | { error: string };
+export type CaptionResponse = { variants: CaptionVariant[] } | ApiError;
+
+/** Error body returned by the Gemini-backed routes; `error` is already user-friendly. */
+export interface ApiError {
+  error: string;
+  code: ErrorCode;
+}
 
 export interface DescriptionRequest {
   formData: Partial<ListingForm>;
   description: string;
 }
 
-export type DescriptionResponse = { description: string } | { error: string };
+export type DescriptionResponse = { description: string } | ApiError;
 
 /** The subset of Gemini's generateContent response these routes read. */
 export interface GeminiResponse {
