@@ -1,75 +1,11 @@
-import type {
-  CaptionRequest,
-  CaptionVariant,
-  GeminiResponse,
-} from "@/app/lib/types";
-
-function cleanText(v: unknown) {
-  return (v ?? "").toString().trim();
-}
-
-function toNumber(v: unknown) {
-  if (v === "" || v === null || v === undefined) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-}
-
-function formatPrice(price: unknown) {
-  const n = toNumber(price);
-  if (n === null) return "";
-  return `$${n.toLocaleString("en-US")}`;
-}
-
-function parseDataUrl(dataUrl: unknown) {
-  if (!dataUrl || typeof dataUrl !== "string") return null;
-  const m = dataUrl.match(/^data:(.*?);base64,(.*)$/);
-  if (!m) return null;
-  return {
-    mimeType: m[1],
-    data: m[2],
-  };
-}
-
-function parseJsonFromText(text: string): unknown {
-  if (!text) return null;
-  const cleaned = text.replace(/```json|```/g, "").trim();
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    return null;
-  }
-}
-
-/** Loosely-typed shape of one variant as the model returns it, before validation. */
-interface RawVariant {
-  name?: unknown;
-  caption?: unknown;
-  hashtags?: unknown;
-  note?: unknown;
-}
-
-function validateOutput(parsed: unknown): CaptionVariant[] | null {
-  const raw = (parsed as { variants?: unknown } | null)?.variants;
-  if (!Array.isArray(raw)) return null;
-  const variants = (raw as RawVariant[])
-    .slice(0, 3)
-    .map((v, idx) => ({
-      name: cleanText(v?.name) || `Version ${idx + 1}`,
-      caption: cleanText(v?.caption),
-      hashtags: Array.isArray(v?.hashtags)
-        ? v.hashtags
-            .map((h) => cleanText(h).replace(/\s+/g, ""))
-            .filter(Boolean)
-            .map((h) => (h.startsWith("#") ? h : `#${h}`))
-            .slice(0, 14)
-        : [],
-      note: cleanText(v?.note),
-    }))
-    .filter((v) => v.caption);
-
-  if (variants.length === 0) return null;
-  return variants;
-}
+import type { CaptionRequest, GeminiResponse } from "@/app/lib/types";
+import { cleanText, toNumber } from "@/app/lib/listing/format";
+import {
+  formatPrice,
+  parseDataUrl,
+  parseJsonFromText,
+  validateOutput,
+} from "@/app/lib/captions/parse";
 
 export async function POST(request: Request) {
   try {

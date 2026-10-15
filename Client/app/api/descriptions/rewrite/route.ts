@@ -1,20 +1,10 @@
 import type { DescriptionRequest, GeminiResponse } from "@/app/lib/types";
 
-function cleanText(v: unknown) {
-  return (v ?? "").toString().trim();
-}
-
-function toNumber(v: unknown) {
-  if (v === "" || v === null || v === undefined) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
-}
-
-function formatPrice(v: unknown) {
-  const n = toNumber(v);
-  if (n === null) return "";
-  return `$${n.toLocaleString("en-US")}`;
-}
+import {
+  cleanText,
+  formatCurrency as formatPrice,
+  toNumber,
+} from "@/app/lib/listing/format";
 
 export async function POST(request: Request) {
   try {
