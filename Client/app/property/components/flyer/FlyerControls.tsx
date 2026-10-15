@@ -535,6 +535,7 @@ export default function FlyerControls({
                   exportType === "pdf" ? onExportPDF() : onExportPNG()
                 }
                 disabled={isExportingPNG || isExportingPDF}
+                aria-label={`Download ${exportType.toUpperCase()}`}
                 className="hover-lift flex items-center justify-center rounded-xl bg-[var(--brand)] text-[#0b0f14] transition hover:bg-[var(--brand-strong)] disabled:opacity-60"
               >
                 {isExportingPNG || isExportingPDF ? (
