@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import type {
   CaptionRequest,
@@ -20,37 +20,47 @@ export default function CaptionsPage() {
   const formData = usePropertyStore((s) => s.formData);
   const images = usePropertyStore((s) => s.images);
   const [copied, setCopied] = useState("");
-  const [localVariants, setLocalVariants] = useState<CaptionVariant[] | null>(
-    null
-  );
   const [aiVariants, setAiVariants] = useState<CaptionVariant[] | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiError, setAiError] = useState("");
   const [mode, setMode] = useState<CaptionMode>("local");
   const [selectedImageIndexes, setSelectedImageIndexes] = useState<number[]>(
-    []
+    () => images.slice(0, 3).map((_, idx) => idx)
   );
+  const [prevInputs, setPrevInputs] = useState({ formData, images });
 
   const hasMinimumData = hasMinimumListingData({
     formData,
     images,
   });
 
+  // The local generator is deterministic, so derive its output from the inputs.
+  const localVariants = useMemo(
+    () =>
+      hasMinimumData
+        ? generateCaptionVariants(formData, images).slice(0, 3)
+        : null,
+    [hasMinimumData, formData, images]
+  );
+
   const variants = mode === "ai" ? aiVariants : localVariants;
 
-  useEffect(() => {
-    setSelectedImageIndexes((prev) => {
-      const valid = prev.filter((i) => i >= 0 && i < images.length);
-      if (valid.length > 0) return valid.slice(0, 3);
-      return images.slice(0, 3).map((_, idx) => idx);
-    });
-  }, [images]);
-
-  useEffect(() => {
-    setLocalVariants(null);
+  // Reset derived state during render when the listing inputs change.
+  if (prevInputs.formData !== formData || prevInputs.images !== images) {
+    setPrevInputs({ formData, images });
     setAiVariants(null);
     setAiError("");
-  }, [formData, images]);
+    if (prevInputs.images !== images) {
+      const valid = selectedImageIndexes.filter(
+        (i) => i >= 0 && i < images.length
+      );
+      setSelectedImageIndexes(
+        valid.length > 0
+          ? valid.slice(0, 3)
+          : images.slice(0, 3).map((_, idx) => idx)
+      );
+    }
+  }
 
   const copyVariant = async (variant: CaptionVariant) => {
     const payload = `${variant.caption}\n\n${variant.hashtags.join(" ")}`;
@@ -110,7 +120,6 @@ export default function CaptionsPage() {
   };
 
   const generateLocal = () => {
-    setLocalVariants(generateCaptionVariants(formData, images).slice(0, 3));
     setAiError("");
   };
 
@@ -129,12 +138,6 @@ export default function CaptionsPage() {
       return [...prev, idx];
     });
   };
-
-  useEffect(() => {
-    if (!hasMinimumData) return;
-
-    setLocalVariants(generateCaptionVariants(formData, images).slice(0, 3));
-  }, [hasMinimumData, formData, images]);
 
   if (!hasMinimumData) {
     return (

@@ -91,7 +91,7 @@ export default function PropertyForm({
   const [isPropertyTypeOpen, setIsPropertyTypeOpen] = useState(false);
   const [isStateOpen, setIsStateOpen] = useState(false);
   const stateRef = useRef<HTMLDivElement>(null);
-  const [errors, setErrors] = useState<ListingErrors>({});
+  const [submitErrors, setErrors] = useState<ListingErrors>({});
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isRewording, setIsRewording] = useState(false);
   const [rewordError, setRewordError] = useState("");
@@ -140,6 +140,13 @@ export default function PropertyForm({
     setErrors(nextErrors);
     return nextErrors;
   };
+
+  // After the first submit, errors track the form live.
+  const liveErrors = useMemo(
+    () => getListingValidationErrors({ formData, images }),
+    [formData, images]
+  );
+  const errors = hasSubmitted ? liveErrors : submitErrors;
 
   const showErrorSummary = useMemo(() => {
     return hasSubmitted && Object.keys(errors).length > 0;
@@ -285,11 +292,6 @@ export default function PropertyForm({
       setIsRewording(false);
     }
   };
-
-  useEffect(() => {
-    if (!hasSubmitted) return;
-    setErrors(getListingValidationErrors({ formData, images }));
-  }, [formData, images, hasSubmitted]);
 
   return (
     <div className="interactive-form rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/96 p-6 shadow-[0_16px_34px_-28px_rgba(15,23,42,0.8)]">
