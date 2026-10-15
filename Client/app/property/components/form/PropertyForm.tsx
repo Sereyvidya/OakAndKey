@@ -294,7 +294,7 @@ export default function PropertyForm({
           onClick={() => onAutofill?.(SAMPLE_AUTOFILL)}
           className="hover-lift rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)] px-4 py-2 text-sm font-semibold text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]"
         >
-          Autofill
+          Sample
         </button>
       </div>
 
