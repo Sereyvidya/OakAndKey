@@ -1,5 +1,7 @@
 # 🏡 Oak & Key Creative Studio
 
+[![CI](https://github.com/Sereyvidya/OakAndKey/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Sereyvidya/OakAndKey/actions/workflows/ci.yml)
+
 Oak & Key Creative Studio is a real estate marketing platform that helps agents create professional marketing materials in minutes. Agents can enter listing information, upload property photos, and instantly generate branded flyers, social media captions, and polished property descriptions ready for clients and online marketing.
 
 Built with **Next.js**, **React**, **Tailwind CSS**, **HTML**, **Gemini API**, and **Codex**, Oak & Key streamlines the marketing workflow for real estate professionals by reducing repetitive content creation and design work.
