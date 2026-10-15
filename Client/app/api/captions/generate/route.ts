@@ -1,24 +1,24 @@
-import type { CaptionRequest, GeminiResponse } from "@/app/lib/types";
+import type { CaptionRequest } from "@/app/lib/types";
 import { cleanText, toNumber } from "@/app/lib/listing/format";
 import {
+  CAPTION_SCHEMA_TEXT,
   formatPrice,
+  parseCaptionReply,
   parseDataUrl,
-  parseJsonFromText,
-  validateOutput,
 } from "@/app/lib/captions/parse";
+import { generateValidated } from "@/app/lib/gemini/client";
+import { readJson, respond } from "@/app/lib/gemini/respond";
+
+export const maxDuration = 60;
+
+const STRICT_SUFFIX = `
+
+Your previous reply could not be used. Return ONLY a JSON object matching this schema, with no markdown fences and no commentary:
+${CAPTION_SCHEMA_TEXT}`;
 
 export async function POST(request: Request) {
-  try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return Response.json(
-        { error: "Missing GEMINI_API_KEY in environment." },
-        { status: 500 }
-      );
-    }
-
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-    const body: Partial<CaptionRequest> = await request.json();
+  return respond("captions/generate", async () => {
+    const body: Partial<CaptionRequest> = await readJson(request);
     const formData = body?.formData || {};
     const images = Array.isArray(body?.images) ? body.images : [];
 
@@ -88,61 +88,28 @@ ${listingSummary}`;
         },
       }));
 
-    const payload = {
+    const payload = (strict: boolean) => ({
       contents: [
         {
           role: "user",
-          parts: [{ text: prompt }, ...imageParts],
+          parts: [
+            { text: strict ? prompt + STRICT_SUFFIX : prompt },
+            ...imageParts,
+          ],
         },
       ],
       generationConfig: {
-        temperature: 0.8,
+        temperature: strict ? 0.2 : 0.8,
         responseMimeType: "application/json",
       },
-    };
+    });
 
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }
-    );
+    const variants = await generateValidated({
+      route: "captions/generate",
+      buildPayload: payload,
+      parse: parseCaptionReply,
+    });
 
-    if (!resp.ok) {
-      const t = await resp.text();
-      return Response.json(
-        { error: `Gemini request failed (${resp.status}): ${t}` },
-        { status: 500 }
-      );
-    }
-
-    const data: GeminiResponse = await resp.json();
-    const text =
-      data?.candidates?.[0]?.content?.parts
-        ?.map((p) => p?.text || "")
-        .join("\n")
-        .trim() || "";
-
-    const parsed = parseJsonFromText(text);
-    const variants = validateOutput(parsed);
-
-    if (!variants) {
-      return Response.json(
-        { error: "Gemini returned an invalid JSON payload for captions." },
-        { status: 500 }
-      );
-    }
-
-    return Response.json({ variants });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    return Response.json(
-      {
-        error: message || "Unexpected server error while generating captions.",
-      },
-      { status: 500 }
-    );
-  }
+    return { variants };
+  });
 }

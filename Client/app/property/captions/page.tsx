@@ -7,6 +7,7 @@ import type {
   CaptionResponse,
   CaptionVariant,
 } from "@/app/lib/types";
+import { postApi } from "@/app/lib/gemini/postApi";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import { generateCaptionVariants } from "@/app/lib/captions/generate";
 import { hasMinimumListingData } from "@/app/lib/listing/validation";
@@ -90,22 +91,9 @@ export default function CaptionsPage() {
           })),
       };
 
-      const resp = await fetch("/api/captions/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data: CaptionResponse = await resp.json();
-      if (!resp.ok || "error" in data) {
-        throw new Error(
-          ("error" in data && data.error) || "Failed to generate AI captions."
-        );
-      }
-
-      if (!Array.isArray(data.variants) || data.variants.length === 0) {
-        throw new Error("AI returned no caption variants.");
-      }
+      const data = await postApi<
+        Extract<CaptionResponse, { variants: unknown }>
+      >("/api/captions/generate", payload);
 
       setAiVariants(data.variants.slice(0, 3));
     } catch (err) {

@@ -1,23 +1,24 @@
-import type { DescriptionRequest, GeminiResponse } from "@/app/lib/types";
-
+import { z } from "zod";
+import type { DescriptionRequest } from "@/app/lib/types";
 import {
   cleanText,
   formatCurrency as formatPrice,
   toNumber,
 } from "@/app/lib/listing/format";
+import { generateValidated } from "@/app/lib/gemini/client";
+import { readJson, respond } from "@/app/lib/gemini/respond";
+
+export const maxDuration = 60;
+
+const descriptionSchema = z.string().trim().min(1);
+
+const STRICT_SUFFIX = `
+
+Your previous reply was empty or unusable. Return ONLY the rewritten description as plain text (non-empty, at most 400 characters), with no preamble or quotes.`;
 
 export async function POST(request: Request) {
-  try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return Response.json(
-        { error: "Missing GEMINI_API_KEY in environment." },
-        { status: 500 }
-      );
-    }
-
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-    const body: Partial<DescriptionRequest> = await request.json();
+  return respond("descriptions/rewrite", async () => {
+    const body: Partial<DescriptionRequest> = await readJson(request);
     const formData = body?.formData || {};
 
     const title = cleanText(formData.propertyTitle);
@@ -55,48 +56,23 @@ ${facts}
 
 Return only the rewritten description text.`;
 
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.6,
+    const description = await generateValidated({
+      route: "descriptions/rewrite",
+      buildPayload: (strict) => ({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: strict ? prompt + STRICT_SUFFIX : prompt }],
           },
-        }),
-      }
-    );
+        ],
+        generationConfig: { temperature: strict ? 0.2 : 0.6 },
+      }),
+      parse: (text) => {
+        const r = descriptionSchema.safeParse(text);
+        return r.success ? r.data : null;
+      },
+    });
 
-    if (!resp.ok) {
-      const t = await resp.text();
-      return Response.json(
-        { error: `Gemini request failed (${resp.status}): ${t}` },
-        { status: 500 }
-      );
-    }
-
-    const data: GeminiResponse = await resp.json();
-    const text =
-      data?.candidates?.[0]?.content?.parts
-        ?.map((p) => p?.text || "")
-        .join("\n")
-        .trim() || "";
-
-    if (!text) {
-      return Response.json(
-        { error: "Gemini returned an empty description." },
-        { status: 500 }
-      );
-    }
-
-    return Response.json({ description: text.slice(0, 400) });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    return Response.json(
-      { error: message || "Unexpected error while rewriting description." },
-      { status: 500 }
-    );
-  }
+    return { description: description.slice(0, 400) };
+  });
 }

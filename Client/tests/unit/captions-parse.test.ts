@@ -40,15 +40,27 @@ describe("validateOutput", () => {
     expect(validateOutput({ variants: "x" })).toBeNull();
   });
 
-  it("drops variants without a caption, and returns null if none remain", () => {
+  it("rejects the reply if any variant has no caption", () => {
     expect(
       validateOutput({ variants: [{ name: "x", caption: "  " }] })
     ).toBeNull();
     expect(
-      validateOutput({
-        variants: [{ caption: "" }, { caption: "Keep me" }],
-      })
-    ).toHaveLength(1);
+      validateOutput({ variants: [{ caption: "" }, { caption: "Keep me" }] })
+    ).toBeNull();
+    expect(validateOutput({ variants: [] })).toBeNull();
+  });
+
+  it("rejects wrong types", () => {
+    expect(validateOutput({ variants: [{ caption: 42 }] })).toBeNull();
+    expect(validateOutput({ variants: [null] })).toBeNull();
+  });
+
+  it("preserves non-Latin (e.g. Khmer) text", () => {
+    const out = validateOutput({
+      variants: [{ caption: "ផ្ទះថ្មីសម្រាប់លក់", hashtags: ["ភ្នំពេញ"] }],
+    })!;
+    expect(out[0]!.caption).toBe("ផ្ទះថ្មីសម្រាប់លក់");
+    expect(out[0]!.hashtags).toEqual(["#ភ្នំពេញ"]);
   });
 
   it("fills in defaults for missing fields", () => {
