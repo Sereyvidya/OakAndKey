@@ -1,3 +1,4 @@
+import type { Lang } from "./i18n/strings";
 import type { ErrorCode } from "./gemini/errors";
 
 export type SizeUnit = "sqm" | "sqft";
@@ -81,6 +82,8 @@ export interface CaptionVariant {
 }
 
 export interface CaptionRequest {
+  /** Output language for generated text; defaults to English. */
+  language?: Lang;
   formData: Partial<ListingForm>;
   images: Pick<ListingImage, "name" | "preview">[];
 }
@@ -94,6 +97,8 @@ export interface ApiError {
 }
 
 export interface DescriptionRequest {
+  /** Output language for generated text; defaults to English. */
+  language?: Lang;
   formData: Partial<ListingForm>;
   description: string;
 }
@@ -121,4 +126,6 @@ export interface FlyerTemplateProps {
   images: ListingImage[];
   theme?: FlyerTheme;
   templateCopy?: TemplateCopyState;
+  /** Language of the flyer's default wording; defaults to English. */
+  lang?: Lang;
 }

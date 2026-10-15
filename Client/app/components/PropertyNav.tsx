@@ -5,23 +5,34 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import { hasCompleteFlyerData } from "@/app/lib/flyer/guards";
+import { useT } from "@/app/lib/i18n/store";
+import type { StringKey } from "@/app/lib/i18n/strings";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: StringKey;
   requiresCompleteInfo?: boolean;
 }
 
 const nav: NavItem[] = [
-  { href: "/", label: "About" },
-  { href: "/property/general", label: "Information" },
-  { href: "/property/flyer", label: "Flyer", requiresCompleteInfo: true },
-  { href: "/property/captions", label: "Captions", requiresCompleteInfo: true },
+  { href: "/", labelKey: "nav.about" },
+  { href: "/property/general", labelKey: "nav.information" },
+  {
+    href: "/property/flyer",
+    labelKey: "nav.flyer",
+    requiresCompleteInfo: true,
+  },
+  {
+    href: "/property/captions",
+    labelKey: "nav.captions",
+    requiresCompleteInfo: true,
+  },
 ];
 
 export default function PropertyNav() {
   const pathname = usePathname();
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +85,7 @@ export default function PropertyNav() {
                     : "text-[var(--ink-soft)] hover:text-[var(--ink-strong)]",
               ].join(" ")}
             >
-              {item.label}
+              {t(item.labelKey)}
 
               <span
                 className={[
@@ -96,7 +107,7 @@ export default function PropertyNav() {
           className="border-b-[2px] border-[var(--brand)] px-1 pb-1 text-base font-semibold text-[var(--ink-strong)] transition-colors hover:text-[var(--brand-strong)] focus:outline-none"
         >
           <span className="flex items-center gap-1">
-            {activeItem.label}
+            {t(activeItem.labelKey)}
             <FiChevronDown
               className={[
                 "h-4 w-4 transition-transform duration-200",
@@ -133,7 +144,7 @@ export default function PropertyNav() {
                     ].join(" ")}
                   >
                     <span className="inline-block">
-                      {item.label}
+                      {t(item.labelKey)}
 
                       <span
                         className={[

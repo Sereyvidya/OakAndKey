@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/app/lib/i18n/store";
+
 import { FiCheck } from "react-icons/fi";
 import type { ListingImage } from "@/app/lib/types";
 
@@ -12,11 +14,12 @@ export default function ImageSelector({
   selectedImageIndexes: number[];
   toggleImageSelection: (idx: number) => void;
 }) {
+  const { t } = useT();
   return (
     <div className="mt-5">
       <div className="mb-3 flex items-center justify-between gap-4">
         <div className="text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
-          Select up to 3 photos
+          {t("captions.selectPhotos")}
         </div>
 
         <span className="rounded-full border border-[var(--card-border)] bg-[var(--field-bg)] px-2.5 py-1 text-xs font-semibold text-[var(--ink-soft)]">
@@ -51,11 +54,11 @@ export default function ImageSelector({
               {selected ? (
                 <div className="absolute right-2 bottom-2 flex items-center gap-1 rounded-full bg-[var(--brand)] px-2 py-1 text-[10px] font-semibold text-[#0b0f14] shadow">
                   <FiCheck className="h-3 w-3" />
-                  Selected
+                  {t("captions.selected")}
                 </div>
               ) : (
                 <div className="absolute right-2 bottom-2 rounded-full bg-black/65 px-2 py-1 text-[10px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
-                  Select
+                  {t("captions.select")}
                 </div>
               )}
             </button>

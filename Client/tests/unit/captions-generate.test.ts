@@ -79,3 +79,52 @@ describe("generateCaptionVariants", () => {
     });
   });
 });
+
+describe("generateCaptionVariants in Khmer", () => {
+  const km = generateCaptionVariants(validForm, [], "km");
+
+  it("returns three Khmer variants", () => {
+    expect(km).toHaveLength(3);
+    for (const v of km) {
+      expect(v.name).toMatch(/[ក-៿]/);
+      expect(v.caption).toMatch(/[ក-៿]/);
+    }
+  });
+
+  it("keeps price, area and facts, with Khmer units", () => {
+    expect(km[0]!.caption).toContain("$485,000");
+    expect(km[0]!.caption).toContain("Austin");
+    expect(km[0]!.caption).toContain("4 បន្ទប់គេង");
+    expect(km[0]!.caption).toContain("ft²");
+  });
+
+  it("mixes English real-estate hashtags with the location", () => {
+    expect(km[0]!.hashtags).toEqual(
+      expect.arrayContaining(["#RealEstate", "#CambodiaRealEstate", "#Austin"])
+    );
+  });
+
+  it("keeps a Khmer place name as a hashtag", () => {
+    const [v] = generateCaptionVariants(
+      { ...validForm, address: "ផ្លូវ 51, ភ្នំពេញ, PP" },
+      [],
+      "km"
+    );
+    expect(v!.hashtags).toContain("#ភ្នំពេញ");
+  });
+
+  it("uses Khmer photo notes", () => {
+    const [v] = generateCaptionVariants(
+      validForm,
+      [{ name: "kitchen.jpg" }],
+      "km"
+    );
+    expect(v!.note).toContain("ផ្ទះបាយ");
+  });
+
+  it("does not change English output", () => {
+    expect(generateCaptionVariants(validForm, [])[0]!.name).toBe(
+      "Version 1 · Premium Listing"
+    );
+  });
+});

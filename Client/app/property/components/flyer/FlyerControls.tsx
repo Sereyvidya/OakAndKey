@@ -8,6 +8,7 @@ import {
 } from "react";
 import type { FlyerTemplate, TemplateCopyState } from "@/app/lib/types";
 import { fileToImage } from "@/app/lib/files";
+import { useT } from "@/app/lib/i18n/store";
 import InlineSpinner from "../shared/InlineSpinner";
 import {
   buildFlyerTheme,
@@ -16,6 +17,7 @@ import {
 } from "@/app/lib/flyer/theme";
 import {
   TEXT_FIELDS_BY_TEMPLATE,
+  defaultSizeFor,
   type TemplateTextField,
 } from "@/app/lib/flyer/templateCopy";
 import {
@@ -60,6 +62,7 @@ export default function FlyerControls({
   templateCopy = {},
   setTemplateCopy,
 }: FlyerControlsProps) {
+  const { t, lang } = useT();
   const [showCustomTheme, setShowCustomTheme] = useState(false);
   const [showColors, setShowColors] = useState(true);
   const [showText, setShowText] = useState(true);
@@ -120,11 +123,11 @@ export default function FlyerControls({
           text:
             nextValue.text ??
             prev?.[template]?.[field.key]?.text ??
-            field.defaultValue,
+            field.defaultValue[lang],
           size:
             nextValue.size ??
             prev?.[template]?.[field.key]?.size ??
-            field.defaultSize,
+            defaultSizeFor(field, lang),
         },
       },
     }));
@@ -145,13 +148,13 @@ export default function FlyerControls({
   return (
     <aside className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/90 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.75)] backdrop-blur md:sticky md:top-24 md:h-fit">
       <h1 className="mb-6 text-3xl font-semibold text-[color:var(--ink-strong)]">
-        Flyer Builder
+        {t("flyer.builder")}
       </h1>
 
       <div className="space-y-6">
         <section>
           <div className="mb-3 text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
-            Template
+            {t("flyer.template")}
           </div>
 
           <div className="grid grid-cols-3 gap-2">
@@ -176,7 +179,7 @@ export default function FlyerControls({
         <section>
           <div className="mb-3 flex items-center justify-between">
             <div className="text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
-              Photos
+              {t("flyer.photos")}
             </div>
 
             <button
@@ -194,7 +197,7 @@ export default function FlyerControls({
           </div>
           {showPhotos && images.length > 1 && (
             <p className="mb-3 text-xs text-[var(--ink-muted)]">
-              Drag photos to reorder them on the flyer.
+              {t("flyer.dragHint")}
             </p>
           )}
           {showPhotos && (
@@ -239,8 +242,7 @@ export default function FlyerControls({
           {showPhotos && (
             <div className="mt-4 border-t border-[var(--card-border)] pt-4">
               <p className="mb-3 text-xs text-[var(--ink-muted)]">
-                Optional: Upload your own QR code. Otherwise, the flyer will
-                generate one from your Social / Website link.
+                {t("flyer.qrHint")}
               </p>
 
               <FileInput
@@ -258,7 +260,7 @@ export default function FlyerControls({
         <section>
           <div className="mb-3 flex items-center justify-between">
             <div className="text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
-              Colors
+              {t("flyer.colors")}
             </div>
 
             <button
@@ -277,7 +279,7 @@ export default function FlyerControls({
           {showColors && (
             <>
               <p className="mb-3 text-xs text-[var(--ink-muted)]">
-                Choose a color palette or define your own.
+                {t("flyer.colorsHint")}
               </p>
               <div className="grid grid-cols-4 gap-1">
                 {allThemePresets.map(({ key, name, colors }) => {
@@ -351,7 +353,7 @@ export default function FlyerControls({
           {showColors && showCustomTheme && (
             <div className="mt-4 rounded-2xl border border-[var(--field-border)] bg-[color:var(--field-bg)] p-4">
               <div className="mb-3 text-xs font-semibold tracking-[0.14em] text-[color:var(--ink-muted)] uppercase">
-                Custom Theme
+                {t("flyer.customTheme")}
               </div>
 
               <input
@@ -363,16 +365,16 @@ export default function FlyerControls({
                     name: e.target.value,
                   }))
                 }
-                placeholder="Preset name"
+                placeholder={t("flyer.presetName")}
                 className="mb-3 w-full rounded-xl border border-[var(--field-border)] bg-[color:var(--surface)] px-3 py-2 text-sm text-[color:var(--ink-base)] outline-none focus:border-[var(--brand)]"
               />
 
               <div className="space-y-3">
                 {(
                   [
-                    ["primary", "Main Color"],
-                    ["secondary", "Accent Color"],
-                    ["surface", "Background"],
+                    ["primary", t("flyer.mainColor")],
+                    ["secondary", t("flyer.accentColor")],
+                    ["surface", t("flyer.background")],
                   ] as const
                 ).map(([field, label]) => (
                   <label
@@ -401,7 +403,7 @@ export default function FlyerControls({
                 onClick={addCustomTheme}
                 className="mt-4 w-full rounded-xl bg-[var(--brand)] px-4 py-2 text-sm font-semibold text-[#0b0f14] hover:bg-[var(--brand-strong)]"
               >
-                Add Custom Preset
+                {t("flyer.addPreset")}
               </button>
             </div>
           )}
@@ -410,7 +412,7 @@ export default function FlyerControls({
         <section>
           <div className="mb-3 flex items-center justify-between">
             <div className="text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
-              Text
+              {t("flyer.text")}
             </div>
 
             <button
@@ -430,13 +432,13 @@ export default function FlyerControls({
           {showText && (
             <>
               <p className="mb-3 text-xs text-[var(--ink-muted)]">
-                Adjust wording and font sizes for this template.
+                {t("flyer.textHint")}
               </p>
               <div className="space-y-3">
                 {activeTextFields.map((field) => (
                   <label key={field.key} className="block">
                     <span className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]">
-                      {field.label}
+                      {lang === "km" ? field.labelKm : field.label}
                     </span>
 
                     <div className="relative">
@@ -444,7 +446,7 @@ export default function FlyerControls({
                         type="text"
                         value={
                           templateCopy?.[template]?.[field.key]?.text ??
-                          field.defaultValue
+                          field.defaultValue[lang]
                         }
                         onChange={(e) =>
                           updateTextField(field, {
@@ -465,7 +467,7 @@ export default function FlyerControls({
                             updateTextField(field, {
                               size:
                                 (templateCopy?.[template]?.[field.key]?.size ??
-                                  field.defaultSize) + 2,
+                                  defaultSizeFor(field, lang)) + 2,
                             })
                           }
                           className="text-[11px] leading-none text-[var(--brand)] hover:text-[var(--brand-strong)]"
@@ -480,7 +482,7 @@ export default function FlyerControls({
                               size: Math.max(
                                 10,
                                 (templateCopy?.[template]?.[field.key]?.size ??
-                                  field.defaultSize) - 2
+                                  defaultSizeFor(field, lang)) - 2
                               ),
                             })
                           }
@@ -500,7 +502,7 @@ export default function FlyerControls({
         <section>
           <div className="flex-col items-center justify-between space-y-3">
             <div className="text-xs font-semibold tracking-[0.16em] text-[color:var(--ink-muted)] uppercase">
-              Download
+              {t("flyer.download")}
             </div>
             <div className="grid grid-cols-[1fr_1fr_56px] gap-2">
               <button

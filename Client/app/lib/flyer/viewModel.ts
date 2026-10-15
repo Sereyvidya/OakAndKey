@@ -1,4 +1,6 @@
 import type { FlyerViewModel, ListingForm, ListingImage } from "../types";
+import type { Lang } from "../i18n/strings";
+import { DEFAULT_DESCRIPTION } from "./labels";
 import {
   cleanText,
   formatCurrency,
@@ -10,14 +12,14 @@ import {
 export function buildFlyerViewModel(
   formData: Partial<ListingForm> = {},
   images: ListingImage[] = [],
-  options: { defaultDescription?: string } = {}
+  options: { defaultDescription?: string; lang?: Lang } = {}
 ): FlyerViewModel {
   const address = joinParts([formData.addressCity, formData.addressState]);
   const fullAddress = cleanText(formData.address) || address;
   const description =
     cleanText(formData.description) ||
     options.defaultDescription ||
-    "Beautifully updated residence with open living spaces, refined finishes, and a layout designed for modern everyday living.";
+    DEFAULT_DESCRIPTION[options.lang ?? "en"];
   const priceText = formatCurrency(formData.price) || "Contact for price";
 
   const gallery = (images || []).map(pickSrc).filter(Boolean);

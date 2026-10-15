@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/app/lib/i18n/store";
+
 import { FiCheck, FiCopy } from "react-icons/fi";
 import type { CaptionVariant } from "@/app/lib/types";
 
@@ -12,6 +14,7 @@ export default function CaptionResultCard({
   copied: string;
   copyVariant: (variant: CaptionVariant) => void;
 }) {
+  const { t } = useT();
   const isCopied = copied === variant.name;
   const hashtagText = variant.hashtags.join(" ");
 
@@ -23,8 +26,10 @@ export default function CaptionResultCard({
             {variant.name}
           </h2>
           <p className="mt-1 text-xs text-[color:var(--ink-muted)]">
-            {variant.caption.length} characters · {variant.hashtags.length}{" "}
-            hashtags
+            {t("captions.stats", {
+              chars: variant.caption.length,
+              tags: variant.hashtags.length,
+            })}
           </p>
         </div>
 
@@ -41,12 +46,12 @@ export default function CaptionResultCard({
           {isCopied ? (
             <>
               <FiCheck className="h-3.5 w-3.5" />
-              Copied
+              {t("captions.copied")}
             </>
           ) : (
             <>
               <FiCopy className="h-3.5 w-3.5" />
-              Copy
+              {t("captions.copy")}
             </>
           )}
         </button>

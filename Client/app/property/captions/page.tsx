@@ -7,6 +7,8 @@ import type {
   CaptionResponse,
   CaptionVariant,
 } from "@/app/lib/types";
+import { useT } from "@/app/lib/i18n/store";
+import LanguageToggle from "@/app/components/LanguageToggle";
 import { postApi } from "@/app/lib/gemini/postApi";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import { generateCaptionVariants } from "@/app/lib/captions/generate";
@@ -18,6 +20,7 @@ import ImageSelector from "../components/captions/ImageSelector";
 import ResultCard from "../components/captions/ResultCard";
 
 export default function CaptionsPage() {
+  const { t, lang } = useT();
   const formData = usePropertyStore((s) => s.formData);
   const images = usePropertyStore((s) => s.images);
   const [copied, setCopied] = useState("");
@@ -28,7 +31,7 @@ export default function CaptionsPage() {
   const [selectedImageIndexes, setSelectedImageIndexes] = useState<number[]>(
     () => images.slice(0, 3).map((_, idx) => idx)
   );
-  const [prevInputs, setPrevInputs] = useState({ formData, images });
+  const [prevInputs, setPrevInputs] = useState({ formData, images, lang });
 
   const hasMinimumData = hasMinimumListingData({
     formData,
@@ -39,16 +42,20 @@ export default function CaptionsPage() {
   const localVariants = useMemo(
     () =>
       hasMinimumData
-        ? generateCaptionVariants(formData, images).slice(0, 3)
+        ? generateCaptionVariants(formData, images, lang).slice(0, 3)
         : null,
-    [hasMinimumData, formData, images]
+    [hasMinimumData, formData, images, lang]
   );
 
   const variants = mode === "ai" ? aiVariants : localVariants;
 
   // Reset derived state during render when the listing inputs change.
-  if (prevInputs.formData !== formData || prevInputs.images !== images) {
-    setPrevInputs({ formData, images });
+  if (
+    prevInputs.formData !== formData ||
+    prevInputs.images !== images ||
+    prevInputs.lang !== lang
+  ) {
+    setPrevInputs({ formData, images, lang });
     setAiVariants(null);
     setAiError("");
     if (prevInputs.images !== images) {
@@ -70,7 +77,7 @@ export default function CaptionsPage() {
       setCopied(variant.name);
       window.setTimeout(() => setCopied(""), 1800);
     } catch {
-      setCopied("Copy failed");
+      setCopied(t("captions.copyFailed"));
       window.setTimeout(() => setCopied(""), 1800);
     }
   };
@@ -82,6 +89,7 @@ export default function CaptionsPage() {
 
       const payload: CaptionRequest = {
         formData,
+        language: lang,
         images: selectedImageIndexes
           .map((idx) => images[idx])
           .filter(Boolean)
@@ -93,14 +101,14 @@ export default function CaptionsPage() {
 
       const data = await postApi<
         Extract<CaptionResponse, { variants: unknown }>
-      >("/api/captions/generate", payload);
+      >("/api/captions/generate", payload, lang);
 
       setAiVariants(data.variants.slice(0, 3));
     } catch (err) {
       setAiError(
         err instanceof Error && err.message
           ? err.message
-          : "Failed to generate AI captions."
+          : t("captions.aiFailed")
       );
     } finally {
       setIsGenerating(false);
@@ -131,16 +139,16 @@ export default function CaptionsPage() {
     return (
       <div className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.7)]">
         <h1 className="mb-2 text-3xl font-semibold text-[color:var(--ink-strong)]">
-          Social Captions
+          {t("captions.title")}
         </h1>
         <p className="mb-6 text-[color:var(--ink-soft)]">
-          Add listing details and photos first, then generate caption versions.
+          {t("captions.needData")}
         </p>
         <Link
           href="/property/general"
           className="hover-lift inline-flex rounded-xl bg-[var(--brand)] px-4 py-2 font-semibold text-[#0b0f14] hover:bg-[var(--brand-strong)]"
         >
-          Go to General Info
+          {t("captions.goGeneral")}
         </Link>
       </div>
     );
@@ -153,17 +161,20 @@ export default function CaptionsPage() {
         className="interactive-form relative z-20 rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/95 p-6 shadow-[0_16px_30px_-24px_rgba(15,23,42,0.7)]"
       >
         <h1 className="text-3xl font-semibold text-[color:var(--ink-strong)]">
-          Social Captions
+          {t("captions.title")}
         </h1>
 
         <p className="mt-2 text-[color:var(--ink-soft)]">
-          {mode === "ai"
-            ? "Use Gemini to generate 3 caption versions from your listing details and selected photos."
-            : "Use the local generator to create 3 caption versions from your listing details."}
+          {mode === "ai" ? t("captions.descAi") : t("captions.descLocal")}
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <ModeMenu mode={mode} setMode={setMode} />
+
+          <div className="flex items-center gap-2 text-sm text-[color:var(--ink-soft)]">
+            <span>{t("captions.language")}</span>
+            <LanguageToggle />
+          </div>
 
           <button
             type="button"
@@ -177,12 +188,12 @@ export default function CaptionsPage() {
             {isGenerating ? (
               <>
                 <InlineSpinner />
-                Generating...
+                {t("captions.generating")}
               </>
             ) : mode === "ai" && variants ? (
-              "Regenerate"
+              t("captions.regenerate")
             ) : (
-              "Generate"
+              t("captions.generate")
             )}
           </button>
         </div>
@@ -204,11 +215,11 @@ export default function CaptionsPage() {
         <section className="rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/82 p-6 shadow-[0_14px_28px_-24px_rgba(15,23,42,0.55)]">
           <div className="mb-2 flex items-center justify-between">
             <div className="text-xs font-semibold tracking-[0.16em] text-[var(--ink-muted)] uppercase">
-              Generated Captions
+              {t("captions.generated")}
             </div>
 
             <div className="text-xs text-[var(--ink-muted)]">
-              {variants.length} versions
+              {t("captions.versions", { n: variants.length })}
             </div>
           </div>
 

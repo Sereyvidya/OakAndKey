@@ -61,3 +61,27 @@ describe("POST /api/descriptions/rewrite", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe("POST /api/descriptions/rewrite: language", () => {
+  it("asks for Khmer when requested, English otherwise", async () => {
+    const km = mockFetchSequence(jsonResponse(geminiBody("ផ្ទះស្អាត។")));
+    await POST(postRequest({ ...body, language: "km" }));
+    expect(promptOfCall(km, 0)).toContain("natural Khmer");
+
+    const en = mockFetchSequence(jsonResponse(geminiBody("A nice home.")));
+    await POST(postRequest(body));
+    expect(promptOfCall(en, 0)).toContain("60 to 120 words");
+  });
+
+  it("returns Khmer text intact and truncates without splitting a cluster", async () => {
+    const long = "ក្រុម".repeat(200); // 1000 UTF-16 units
+    mockFetchSequence(jsonResponse(geminiBody(long)));
+    const res = await POST(postRequest({ ...body, language: "km" }));
+    const { description } = await res.json();
+    expect(description.length).toBeLessThanOrEqual(400);
+    expect(description.endsWith("្")).toBe(false);
+    expect(long.startsWith(description)).toBe(true);
+    // ends on a whole "ក្រុម" unit
+    expect(description.endsWith("ម")).toBe(true);
+  });
+});

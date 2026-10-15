@@ -1,4 +1,5 @@
 import { userMessage, type ErrorCode } from "./errors";
+import { translate, type Lang } from "../i18n/strings";
 
 /**
  * POSTs JSON to one of our API routes and returns the parsed body.
@@ -8,7 +9,8 @@ import { userMessage, type ErrorCode } from "./errors";
  */
 export async function postApi<T extends object>(
   url: string,
-  body: unknown
+  body: unknown,
+  lang: Lang = "en"
 ): Promise<T> {
   let resp: Response;
   try {
@@ -18,21 +20,21 @@ export async function postApi<T extends object>(
       body: JSON.stringify(body),
     });
   } catch {
-    throw new Error(
-      "Couldn't reach the server. Check your connection and try again."
-    );
+    throw new Error(translate(lang, "err.network"));
   }
 
   let data: unknown;
   try {
     data = await resp.json();
   } catch {
-    throw new Error(userMessage(resp.status === 504 ? "TIMEOUT" : "INTERNAL"));
+    throw new Error(
+      userMessage(resp.status === 504 ? "TIMEOUT" : "INTERNAL", lang)
+    );
   }
 
   if (!resp.ok) {
     const err = data as { error?: string; code?: ErrorCode };
-    throw new Error(err.error || userMessage(err.code));
+    throw new Error(err.error || userMessage(err.code, lang));
   }
   return data as T;
 }

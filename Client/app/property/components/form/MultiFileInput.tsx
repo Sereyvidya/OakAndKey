@@ -1,3 +1,4 @@
+import { useT } from "@/app/lib/i18n/store";
 import type { ChangeEventHandler } from "react";
 import type { IconType } from "react-icons";
 
@@ -16,6 +17,7 @@ export default function MultiFileInput({
   files?: unknown[];
   hasError?: boolean | string;
 }) {
+  const { t } = useT();
   const inputId = `${label.replace(/\s+/g, "-").toLowerCase()}-input`;
 
   return (
@@ -36,7 +38,7 @@ export default function MultiFileInput({
             <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[color:var(--ink-muted)]">
               <Icon size={16} />
             </span>
-            Choose file
+            {t("file.choose")}
           </label>
 
           <input
@@ -50,8 +52,8 @@ export default function MultiFileInput({
 
           <span className="text-sm text-[color:var(--ink-muted)]">
             {files?.length
-              ? `${files.length} file${files.length > 1 ? "s" : ""} selected`
-              : "No files chosen"}
+              ? t("file.selected", { n: files.length })
+              : t("file.noneMany")}
           </span>
         </div>
 
@@ -61,7 +63,7 @@ export default function MultiFileInput({
           className="mt-3 text-sm text-[color:var(--ink-soft)] hover:text-[color:var(--ink-strong)] disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!files?.length}
         >
-          Clear
+          {t("file.clear")}
         </button>
       </div>
     </div>

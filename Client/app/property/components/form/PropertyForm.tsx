@@ -24,6 +24,9 @@ import type {
   ListingForm,
   ListingImage,
 } from "@/app/lib/types";
+import { useT } from "@/app/lib/i18n/store";
+import { translateErrors } from "@/app/lib/i18n/validation";
+import { truncateGraphemes } from "@/app/lib/text";
 import { postApi } from "@/app/lib/gemini/postApi";
 import { composeAddress } from "@/app/lib/address";
 import ErrorText from "./ErrorText";
@@ -89,6 +92,7 @@ export default function PropertyForm({
   onSubmit,
   onPropertyTypeSelect,
 }: PropertyFormProps) {
+  const { t, lang } = useT();
   const [isPropertyTypeOpen, setIsPropertyTypeOpen] = useState(false);
   const [isStateOpen, setIsStateOpen] = useState(false);
   const stateRef = useRef<HTMLDivElement>(null);
@@ -147,7 +151,10 @@ export default function PropertyForm({
     () => getListingValidationErrors({ formData, images }),
     [formData, images]
   );
-  const errors = hasSubmitted ? liveErrors : submitErrors;
+  const errors = useMemo(
+    () => translateErrors(hasSubmitted ? liveErrors : submitErrors, lang),
+    [hasSubmitted, liveErrors, submitErrors, lang]
+  );
 
   const showErrorSummary = useMemo(() => {
     return hasSubmitted && Object.keys(errors).length > 0;
@@ -263,20 +270,28 @@ export default function PropertyForm({
 
       const data = await postApi<
         Extract<DescriptionResponse, { description: string }>
-      >("/api/descriptions/rewrite", {
-        formData,
-        description: formData.description || "",
-      } satisfies DescriptionRequest);
+      >(
+        "/api/descriptions/rewrite",
+        {
+          formData,
+          description: formData.description || "",
+          language: lang,
+        } satisfies DescriptionRequest,
+        lang
+      );
       const rewritten = data.description.trim();
 
       onInputChange({
-        target: { name: "description", value: rewritten.slice(0, 400) },
+        target: {
+          name: "description",
+          value: truncateGraphemes(rewritten, 400),
+        },
       });
     } catch (err) {
       setRewordError(
         err instanceof Error && err.message
           ? err.message
-          : "Failed to reword description."
+          : t("form.rewordFailed")
       );
     } finally {
       setIsRewording(false);
@@ -287,21 +302,21 @@ export default function PropertyForm({
     <div className="interactive-form rounded-2xl border border-[var(--card-border)] bg-[color:var(--surface)]/96 p-6 shadow-[0_16px_34px_-28px_rgba(15,23,42,0.8)]">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold text-[color:var(--ink-strong)]">
-          General Information
+          {t("form.title")}
         </h1>
         <button
           type="button"
           onClick={() => onAutofill?.(SAMPLE_AUTOFILL)}
           className="hover-lift rounded-xl border border-[var(--field-border)] bg-[color:var(--field-bg)] px-4 py-2 text-sm font-semibold text-[color:var(--ink-base)] hover:bg-[color:var(--surface-soft)]"
         >
-          Sample
+          {t("form.sample")}
         </button>
       </div>
 
       {/* Error summary */}
       {showErrorSummary && (
         <div className="form-error-summary mb-6 rounded-lg border p-4 text-sm font-medium">
-          Please fix the highlighted fields below.
+          {t("form.fixErrors")}
         </div>
       )}
 
@@ -310,7 +325,7 @@ export default function PropertyForm({
         <section className="form-section">
           <div className="mb-4 flex items-baseline justify-between">
             <h2 className="text-xl font-medium text-[color:var(--ink-strong)]">
-              Listing Details
+              {t("form.listingDetails")}
             </h2>
           </div>
 
@@ -320,7 +335,7 @@ export default function PropertyForm({
                 htmlFor="propertyTitle"
                 className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
               >
-                Title
+                {t("form.propTitle")}
               </label>
               <InputWithIcon
                 icon={Tag}
@@ -345,7 +360,7 @@ export default function PropertyForm({
 
               <ErrorText>
                 {isTitleTooLong
-                  ? `Title must be ${TITLE_MAX_CHARS} characters or less for flyers.`
+                  ? t("form.titleTooLong", { n: TITLE_MAX_CHARS })
                   : hasSubmitted
                     ? errors.propertyTitle
                     : ""}
@@ -354,7 +369,7 @@ export default function PropertyForm({
 
             <div>
               <label className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]">
-                Address
+                {t("form.address")}
               </label>
               <div
                 className={[
@@ -422,7 +437,7 @@ export default function PropertyForm({
                           : "text-[color:var(--ink-muted)]"
                       }
                     >
-                      {addressState || "State"}
+                      {addressState || t("form.state")}
                     </span>
                     <FiChevronDown
                       className={[
@@ -464,7 +479,7 @@ export default function PropertyForm({
                   htmlFor="price"
                   className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
                 >
-                  Price (USD)
+                  {t("form.price")}
                 </label>
 
                 <div className="relative">
@@ -503,7 +518,7 @@ export default function PropertyForm({
                   htmlFor="propertyType"
                   className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
                 >
-                  Property Type
+                  {t("form.propertyType")}
                 </label>
 
                 <div className="relative" ref={propertyTypeRef}>
@@ -535,8 +550,12 @@ export default function PropertyForm({
                       }
                     >
                       {selectedPropertyType
-                        ? selectedPropertyType.label
-                        : "Select"}
+                        ? t(
+                            selectedPropertyType.value === "house"
+                              ? "form.type.house"
+                              : "form.type.condo"
+                          )
+                        : t("form.select")}
                     </span>
 
                     <FiChevronDown
@@ -567,7 +586,11 @@ export default function PropertyForm({
                           role="option"
                           aria-selected={formData.propertyType === type.value}
                         >
-                          {type.label}
+                          {t(
+                            type.value === "house"
+                              ? "form.type.house"
+                              : "form.type.condo"
+                          )}
                         </button>
                       ))}
                     </div>
@@ -586,7 +609,7 @@ export default function PropertyForm({
                   htmlFor="bedrooms"
                   className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
                 >
-                  Bedrooms
+                  {t("form.bedrooms")}
                 </label>
                 <InputWithIcon
                   icon={BedDouble}
@@ -615,7 +638,7 @@ export default function PropertyForm({
                   htmlFor="bathrooms"
                   className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
                 >
-                  Bathrooms
+                  {t("form.bathrooms")}
                 </label>
                 <InputWithIcon
                   icon={Bath}
@@ -645,7 +668,8 @@ export default function PropertyForm({
                     htmlFor="size"
                     className="block text-sm font-medium text-[color:var(--ink-base)]"
                   >
-                    Size ({formData.sizeUnit === "sqft" ? "sqft" : "sqm"})
+                    {t("form.size")} (
+                    {formData.sizeUnit === "sqft" ? "sqft" : "sqm"})
                   </label>
 
                   <button
@@ -702,7 +726,7 @@ export default function PropertyForm({
                 htmlFor="description"
                 className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
               >
-                Description
+                {t("form.description")}
               </label>
               <div className="relative">
                 <textarea
@@ -750,14 +774,14 @@ export default function PropertyForm({
                 ].join(" ")}
               >
                 <span className="text-[color:var(--ink-muted)]">
-                  We recommend at least 300 characters.
+                  {t("form.descRecommend")}
                 </span>
                 <span className="ml-auto">
-                  {formData.description.length}/400 characters
+                  {t("form.descCount", { n: formData.description.length })}
                   {formData.description.length === 400
-                    ? " — limit reached"
+                    ? t("form.descLimit")
                     : formData.description.length >= 350
-                      ? " — almost at limit"
+                      ? t("form.descAlmost")
                       : ""}
                 </span>
               </p>
@@ -775,7 +799,7 @@ export default function PropertyForm({
             >
               <MultiFileInput
                 icon={Images}
-                label="Property Images"
+                label={t("form.images")}
                 files={images}
                 hasError={Boolean(hasSubmitted && errors.images)}
                 onChange={(e) => {
@@ -818,7 +842,7 @@ export default function PropertyForm({
                       </button>
                       {idx === 0 && (
                         <div className="absolute top-2 left-2 rounded-md bg-[var(--brand)] px-2 py-1 text-xs text-[#0b0f14] shadow">
-                          Featured
+                          {t("form.featured")}
                         </div>
                       )}
                     </div>
@@ -832,7 +856,7 @@ export default function PropertyForm({
         {/* Agent Details Section */}
         <section className="form-section">
           <h2 className="mb-4 text-xl font-medium text-[color:var(--ink-strong)]">
-            Agent Details
+            {t("form.agentDetails")}
           </h2>
 
           <div className="space-y-4">
@@ -841,7 +865,7 @@ export default function PropertyForm({
                 htmlFor="agentName"
                 className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
               >
-                Name
+                {t("form.agentName")}
               </label>
               <InputWithIcon
                 icon={User}
@@ -869,7 +893,7 @@ export default function PropertyForm({
                   htmlFor="agentCompanyName"
                   className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
                 >
-                  Company Name
+                  {t("form.companyName")}
                 </label>
                 <InputWithIcon
                   icon={Building2}
@@ -896,7 +920,7 @@ export default function PropertyForm({
                   htmlFor="agentSocialLink"
                   className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
                 >
-                  Social / Website
+                  {t("form.social")}
                 </label>
                 <InputWithIcon
                   icon={Globe}
@@ -925,7 +949,7 @@ export default function PropertyForm({
                   htmlFor="agentPhone"
                   className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
                 >
-                  Phone
+                  {t("form.phone")}
                 </label>
 
                 <InputWithIcon
@@ -952,7 +976,7 @@ export default function PropertyForm({
                   htmlFor="agentEmail"
                   className="mb-1 block text-sm font-medium text-[color:var(--ink-base)]"
                 >
-                  Email
+                  {t("form.email")}
                 </label>
 
                 <InputWithIcon
@@ -980,7 +1004,7 @@ export default function PropertyForm({
               <div>
                 <FileInput
                   icon={ImageIcon}
-                  label="Company Logo"
+                  label={t("form.companyLogo")}
                   accept="image/*"
                   file={formData.agentCompanyLogo}
                   onChange={(e) => {
@@ -999,7 +1023,7 @@ export default function PropertyForm({
               <div>
                 <FileInput
                   icon={ImageIcon}
-                  label="Agent Photo"
+                  label={t("form.agentPhoto")}
                   accept="image/*"
                   file={formData.agentPhoto}
                   onChange={(e) => {
@@ -1022,7 +1046,7 @@ export default function PropertyForm({
             type="submit"
             className="hover-lift rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-[#0b0f14] hover:bg-[var(--brand-strong)]"
           >
-            Save & Continue
+            {t("form.save")}
           </button>
         </div>
       </form>

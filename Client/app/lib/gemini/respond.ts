@@ -9,7 +9,9 @@ import { logFailure } from "./log";
 /** Runs a route handler, turning any failure into a typed JSON error + log line. */
 export async function respond<T extends object>(
   route: string,
-  run: () => Promise<T>
+  run: () => Promise<T>,
+  /** Language for the user-facing error text. */
+  langOf: () => "en" | "km" = () => "en"
 ): Promise<Response> {
   const startedAt = Date.now();
   try {
@@ -28,7 +30,7 @@ export async function respond<T extends object>(
           : String(err),
     });
     return Response.json(
-      { error: userMessage(code), code },
+      { error: userMessage(code, langOf()), code },
       { status: HTTP_STATUS[code] }
     );
   }
