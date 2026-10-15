@@ -23,7 +23,7 @@ test("sample listing -> flyer templates -> export -> AI captions", async ({
   await page.getByRole("link", { name: /get started/i }).click();
   await expect(page).toHaveURL(/\/property\/general/);
 
-  await page.getByRole("button", { name: "Autofill" }).click();
+  await page.getByRole("button", { name: "Sample" }).click();
   await expect(page.getByLabel("Title")).toHaveValue(
     "Modern 4-Bedroom Family Home"
   );
