@@ -29,6 +29,7 @@ import { composeAddress } from "@/app/lib/address";
 import { findFairHousingIssues } from "@/app/lib/fairHousing";
 import FairHousingNotice from "../shared/FairHousingNotice";
 import ErrorText from "./ErrorText";
+import SaveListingButton from "./SaveListingButton";
 import FileInput from "./FileInput";
 import GeminiButton from "./GeminiButton";
 import InputWithIcon from "./InputWithIcon";
@@ -72,6 +73,8 @@ interface PropertyFormProps {
   onClearAgentPhoto: () => void;
   onClearCompanyLogo: () => void;
   onRemoveImage: (index: number) => void;
+  /** Shown under the photo picker, e.g. when the photo limit trimmed a selection. */
+  photoNotice?: string;
   onSubmit?: (e: FormEvent<HTMLFormElement>) => void;
   onPropertyTypeSelect: (value: string) => void;
 }
@@ -88,6 +91,7 @@ export default function PropertyForm({
   onClearAgentPhoto,
   onClearCompanyLogo,
   onRemoveImage,
+  photoNotice,
   onSubmit,
   onPropertyTypeSelect,
 }: PropertyFormProps) {
@@ -802,6 +806,9 @@ export default function PropertyForm({
               />
 
               <ErrorText>{hasSubmitted ? errors.images : ""}</ErrorText>
+              {photoNotice ? (
+                <p className="mt-1 text-xs text-amber-700">{photoNotice}</p>
+              ) : null}
 
               {images?.length > 0 && (
                 <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -1024,7 +1031,8 @@ export default function PropertyForm({
           </div>
         </section>
 
-        <div className="flex items-center justify-end border-t border-[var(--card-border)] pt-6">
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[var(--card-border)] pt-6">
+          <SaveListingButton />
           <button
             type="submit"
             className="hover-lift rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-[#0b0f14] hover:bg-[var(--brand-strong)]"

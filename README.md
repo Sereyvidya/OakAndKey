@@ -12,6 +12,23 @@ Built with **Next.js**, **React**, **Tailwind CSS**, **HTML**, **Gemini API**, a
 
 Check it out here: https://oak-and-key.vercel.app
 
+## 🔐 Accounts & saved listings (optional)
+
+Agents can sign in, save listings and photos, and reuse their agent details. It runs on [Supabase](https://supabase.com) (Auth, Postgres, Storage) and is off unless configured, so the app works without it.
+
+1. Create a Supabase project.
+2. In the SQL Editor, run [`client/supabase/schema.sql`](client/supabase/schema.sql). It creates the `profiles` and `listings` tables, row-level security (each agent only sees their own rows) and the `media` storage bucket.
+3. Copy the project URL and anon key (Project Settings → API) into `client/.env.local`, and into Vercel for both Preview and Production:
+
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+   ```
+
+4. Optional: for a demo without email delivery, turn off Authentication → Providers → Email → "Confirm email".
+
+Photos are resized in the browser before use (listing photos to 1600px, headshots and logos to 512px) so storage stays small: roughly 2 MB per listing.
+
 ## ✨ Features
 
 - 🏠 Create and manage real estate listings with property and agent information

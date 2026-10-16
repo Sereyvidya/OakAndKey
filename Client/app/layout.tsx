@@ -4,6 +4,8 @@ import { Manrope, Sora } from "next/font/google";
 import Image from "next/image";
 import "./globals.css";
 import PropertyNav from "./components/PropertyNav";
+import AuthSync from "./components/AuthSync";
+import AccountMenu from "./components/AccountMenu";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -26,28 +28,32 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${manrope.variable} ${sora.variable} font-sans antialiased`}
       >
+        <AuthSync />
         <header className="sticky top-0 z-30 border-b border-[var(--card-border)]/80 bg-[color:var(--surface)]/86 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-8 py-4">
-            <div className="flex items-center gap-3">
+          <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3 sm:px-8 sm:py-4">
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
               <Image
                 src="/Logo.png"
                 alt="Oak & Key Logo"
                 width={300}
                 height={80}
-                className="h-12 w-auto shrink-0"
+                className="h-10 w-auto shrink-0 sm:h-12"
                 priority
               />
 
-              <div className="leading-none">
-                <h1 className="text-2xl font-semibold text-[color:var(--ink-strong)]">
+              <div className="leading-none whitespace-nowrap">
+                <h1 className="text-xl font-semibold text-[color:var(--ink-strong)] sm:text-2xl">
                   Oak & Key
                 </h1>
-                <p className="text-xs font-medium tracking-[0.18em] text-[color:var(--ink-muted)] uppercase">
+                <p className="hidden text-xs font-medium tracking-[0.18em] text-[color:var(--ink-muted)] uppercase sm:block">
                   Creative Studio
                 </p>
               </div>
             </div>
-            <PropertyNav />
+            <div className="flex items-center gap-3 sm:gap-4">
+              <PropertyNav />
+              <AccountMenu />
+            </div>
           </div>
         </header>
         {children}

@@ -1,5 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
+import { ANON_KEY, SUPABASE_URL } from "./e2e/helpers/mockSupabase";
+
 const PORT = 3100;
 
 export default defineConfig({
@@ -17,5 +19,10 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // A fake Supabase project: tests mock its network calls (e2e/helpers).
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ANON_KEY,
+    },
   },
 });

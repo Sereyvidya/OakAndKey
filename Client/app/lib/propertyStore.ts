@@ -28,6 +28,15 @@ const initialFormData: ListingForm = {
 interface PropertyState {
   formData: ListingForm;
   images: ListingImage[];
+  /** Id of the saved listing being edited; null for a new, unsaved one. */
+  currentListingId: string | null;
+  setCurrentListingId: (id: string | null) => void;
+  /** Replaces the whole working listing (used when opening a saved one). */
+  loadListing: (listing: {
+    id: string | null;
+    formData: Partial<ListingForm>;
+    images: ListingImage[];
+  }) => void;
   setFormData: (partial: Partial<ListingForm>) => void;
   setImages: (images: ListingImage[]) => void;
   addImages: (newImages: ListingImage[]) => void;
@@ -39,6 +48,16 @@ interface PropertyState {
 export const usePropertyStore = create<PropertyState>((set) => ({
   formData: { ...initialFormData },
   images: [],
+  currentListingId: null,
+
+  setCurrentListingId: (id) => set({ currentListingId: id }),
+
+  loadListing: ({ id, formData, images }) =>
+    set({
+      currentListingId: id,
+      formData: { ...initialFormData, ...formData },
+      images,
+    }),
 
   setFormData: (partial) =>
     set((state) => {
@@ -105,5 +124,6 @@ export const usePropertyStore = create<PropertyState>((set) => ({
     set({
       formData: { ...initialFormData },
       images: [],
+      currentListingId: null,
     }),
 }));

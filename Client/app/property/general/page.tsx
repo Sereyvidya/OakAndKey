@@ -1,8 +1,9 @@
 "use client";
 
-import type { ChangeEvent, FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { fileToImage } from "@/app/lib/files";
+import { avatarFromFile, logoFromFile, photoFromFile } from "@/app/lib/files";
+import { MAX_LISTING_PHOTOS } from "@/app/lib/listing/constants";
 import type { ListingForm } from "@/app/lib/types";
 import PropertyForm, {
   type FieldChange,
@@ -20,6 +21,8 @@ export default function GeneralInfoPage() {
   const addImages = usePropertyStore((s) => s.addImages);
   const setImages = usePropertyStore((s) => s.setImages);
   const removeImage = usePropertyStore((s) => s.removeImage);
+
+  const [photoNotice, setPhotoNotice] = useState("");
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,7 +48,7 @@ export default function GeneralInfoPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const img = await fileToImage(file);
+    const img = await avatarFromFile(file);
     setFormData({ agentPhoto: img });
   };
 
@@ -53,7 +56,7 @@ export default function GeneralInfoPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const img = await fileToImage(file);
+    const img = await logoFromFile(file);
     setFormData({ agentCompanyLogo: img });
   };
 
@@ -61,7 +64,13 @@ export default function GeneralInfoPage() {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
 
-    Promise.all(files.map(fileToImage)).then(addImages);
+    const room = Math.max(0, MAX_LISTING_PHOTOS - images.length);
+    setPhotoNotice(
+      files.length > room
+        ? `Up to ${MAX_LISTING_PHOTOS} photos per listing. Added ${room} of ${files.length}.`
+        : ""
+    );
+    Promise.all(files.slice(0, room).map(photoFromFile)).then(addImages);
   };
 
   return (
@@ -76,7 +85,11 @@ export default function GeneralInfoPage() {
       onClearAgentPhoto={() => setFormData({ agentPhoto: null })}
       onClearCompanyLogo={() => setFormData({ agentCompanyLogo: null })}
       onImageChange={handleImageChange}
-      onClearImages={() => setImages([])}
+      photoNotice={photoNotice}
+      onClearImages={() => {
+        setImages([]);
+        setPhotoNotice("");
+      }}
       onRemoveImage={removeImage}
       onSubmit={handleSubmit}
     />
