@@ -4,7 +4,7 @@ const mockCaptions = {
   variants: [
     {
       name: "Version 1",
-      caption: "Mocked AI caption for the sample home.",
+      caption: "Mocked AI caption for the sample home. Perfect for families.",
       hashtags: ["#JustListed", "#Austin"],
       note: "Mocked.",
     },
@@ -54,6 +54,10 @@ test("sample listing -> flyer templates -> export -> AI captions", async ({
   await page.getByRole("button", { name: /local generator/i }).click();
   await page.getByRole("button", { name: "Generate" }).click();
   await expect(
-    page.getByText("Mocked AI caption for the sample home.")
+    page.getByText("Mocked AI caption for the sample home.", { exact: false })
   ).toBeVisible();
+  // Flagged wording gets a non-blocking fair housing note.
+  await expect(
+    page.getByRole("note", { name: "Fair housing check" })
+  ).toContainText(/perfect for families/i);
 });

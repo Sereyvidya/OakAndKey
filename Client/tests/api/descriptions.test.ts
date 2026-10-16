@@ -61,3 +61,38 @@ describe("POST /api/descriptions/rewrite", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe("POST /api/descriptions/rewrite: fair housing", () => {
+  it("puts the rules in the prompt, including rewriting flagged input", async () => {
+    const fetchMock = mockFetchSequence(
+      jsonResponse(geminiBody("A fine home."))
+    );
+    await POST(postRequest({ ...body, description: "Perfect for families." }));
+    const prompt = promptOfCall(fetchMock, 0);
+    expect(prompt).toContain("Fair housing rules");
+    expect(prompt).toContain("uses wording that breaks these rules");
+    expect(prompt).toContain("Current description: Perfect for families.");
+  });
+
+  it("retries with the flagged phrase when the rewrite is flagged", async () => {
+    const fetchMock = mockFetchSequence(
+      jsonResponse(geminiBody("Ideal for young professionals.")),
+      jsonResponse(geminiBody("Bright home with an open layout."))
+    );
+    const res = await POST(postRequest(body));
+    expect((await res.json()).description).toBe(
+      "Bright home with an open layout."
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(promptOfCall(fetchMock, 1)).toContain(
+      '"Ideal for young professionals"'
+    );
+  });
+
+  it("returns the second reply even if still flagged", async () => {
+    mockFetchSequence(jsonResponse(geminiBody("Perfect for families.")));
+    const res = await POST(postRequest(body));
+    expect(res.status).toBe(200);
+    expect((await res.json()).description).toBe("Perfect for families.");
+  });
+});

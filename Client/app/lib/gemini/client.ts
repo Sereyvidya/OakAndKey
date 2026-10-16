@@ -92,25 +92,41 @@ export async function callGemini(
 }
 
 /**
- * Generate-then-validate. If the first reply fails validation, ask once more
- * with a stricter prompt; if that also fails, throw INVALID_OUTPUT.
+ * Generate-then-validate. If the first reply fails validation, or `check`
+ * reports problems with it, ask once more with a stricter prompt (plus
+ * `feedback` describing the problems). If that second reply cannot be parsed,
+ * throw INVALID_OUTPUT; if it parses but still has `check` problems it is
+ * returned anyway so the UI can warn instead of failing the request.
  */
 export async function generateValidated<T>(options: {
   route: string;
-  buildPayload: (strict: boolean) => unknown;
+  buildPayload: (strict: boolean, feedback?: string[]) => unknown;
   parse: (text: string) => T | null;
+  /** Returns human-readable problems with a parsed reply; empty when fine. */
+  check?: (parsed: T) => string[];
 }): Promise<T> {
+  let feedback: string[] | undefined;
   for (const strict of [false, true]) {
-    const text = await callGemini(options.route, options.buildPayload(strict));
+    const text = await callGemini(
+      options.route,
+      options.buildPayload(strict, feedback)
+    );
     const parsed = options.parse(text);
-    if (parsed !== null) return parsed;
+    const problems = parsed !== null ? (options.check?.(parsed) ?? []) : [];
+
+    if (parsed !== null && (problems.length === 0 || strict)) return parsed;
     if (strict) {
       throw new GeminiError(
         "INVALID_OUTPUT",
         `unparseable: ${text.slice(0, 200)}`
       );
     }
-    logRetry({ route: options.route, attempt: 1, reason: "INVALID_OUTPUT" });
+    feedback = problems.length > 0 ? problems : undefined;
+    logRetry({
+      route: options.route,
+      attempt: 1,
+      reason: parsed === null ? "INVALID_OUTPUT" : "FLAGGED_OUTPUT",
+    });
   }
   throw new GeminiError("INVALID_OUTPUT");
 }

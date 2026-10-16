@@ -26,6 +26,8 @@ import type {
 } from "@/app/lib/types";
 import { postApi } from "@/app/lib/gemini/postApi";
 import { composeAddress } from "@/app/lib/address";
+import { findFairHousingIssues } from "@/app/lib/fairHousing";
+import FairHousingNotice from "../shared/FairHousingNotice";
 import ErrorText from "./ErrorText";
 import FileInput from "./FileInput";
 import GeminiButton from "./GeminiButton";
@@ -117,6 +119,10 @@ export default function PropertyForm({
         : Building;
   const currentTitleLength = (formData.propertyTitle || "").length;
   const isTitleTooLong = currentTitleLength > TITLE_MAX_CHARS;
+  const descriptionIssues = useMemo(
+    () => findFairHousingIssues(formData.description || ""),
+    [formData.description]
+  );
   const addressStreet = formData.addressStreet || "";
   const addressCity = formData.addressCity || "";
   const addressState = formData.addressState || "";
@@ -762,6 +768,7 @@ export default function PropertyForm({
                 </span>
               </p>
               <ErrorText>{hasSubmitted ? errors.description : ""}</ErrorText>
+              <FairHousingNotice issues={descriptionIssues} className="mt-2" />
               {rewordError ? (
                 <p className="form-error-text mt-1 text-xs">{rewordError}</p>
               ) : null}

@@ -6,6 +6,11 @@ import {
   toNumber,
 } from "@/app/lib/listing/format";
 import { generateValidated } from "@/app/lib/gemini/client";
+import {
+  FAIR_HOUSING_PROMPT_RULES,
+  fairHousingFeedback,
+  findFairHousingIssues,
+} from "@/app/lib/fairHousing";
 import { readJson, respond } from "@/app/lib/gemini/respond";
 
 export const maxDuration = 60;
@@ -51,6 +56,9 @@ Constraints:
 - Maximum 400 characters total.
 - Plain text only, no emojis, no hashtags.
 
+${FAIR_HOUSING_PROMPT_RULES}
+If the current description uses wording that breaks these rules, rewrite it without that wording.
+
 Listing facts:
 ${facts}
 
@@ -58,11 +66,19 @@ Return only the rewritten description text.`;
 
     const description = await generateValidated({
       route: "descriptions/rewrite",
-      buildPayload: (strict) => ({
+      buildPayload: (strict, feedback) => ({
         contents: [
           {
             role: "user",
-            parts: [{ text: strict ? prompt + STRICT_SUFFIX : prompt }],
+            parts: [
+              {
+                text: strict
+                  ? prompt +
+                    STRICT_SUFFIX +
+                    (feedback ? `\n${fairHousingFeedback(feedback)}` : "")
+                  : prompt,
+              },
+            ],
           },
         ],
         generationConfig: { temperature: strict ? 0.2 : 0.6 },
@@ -71,6 +87,7 @@ Return only the rewritten description text.`;
         const r = descriptionSchema.safeParse(text);
         return r.success ? r.data : null;
       },
+      check: (text) => findFairHousingIssues(text).map((i) => i.term),
     });
 
     return { description: description.slice(0, 400) };

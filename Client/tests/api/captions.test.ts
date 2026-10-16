@@ -7,6 +7,7 @@ import {
   jsonResponse,
   mockFetchSequence,
   postRequest,
+  promptOfCall,
 } from "./helpers";
 
 const goodModelOutput = JSON.stringify({
@@ -96,5 +97,55 @@ describe("POST /api/captions/generate", () => {
     expect(res.status).toBe(500);
     expect((await res.json()).code).toBe("MISSING_API_KEY");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/captions/generate: fair housing", () => {
+  const flagged = () =>
+    jsonResponse(
+      geminiBody(
+        JSON.stringify({
+          variants: [
+            {
+              caption: "Perfect for families in a safe neighborhood.",
+              hashtags: [],
+            },
+          ],
+        })
+      )
+    );
+
+  it("puts the fair housing rules in the prompt", async () => {
+    const fetchMock = mockFetchSequence(ok());
+    await POST(postRequest({ formData: validForm }));
+    expect(promptOfCall(fetchMock, 0)).toContain("Fair housing rules");
+    expect(promptOfCall(fetchMock, 0)).toContain("never the people");
+  });
+
+  it("retries once, naming the flagged phrases, and returns the clean rewrite", async () => {
+    const fetchMock = mockFetchSequence(flagged(), ok());
+    const res = await POST(postRequest({ formData: validForm }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).variants[0].caption).toBe("Welcome home");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const retry = promptOfCall(fetchMock, 1);
+    expect(retry).toContain('"perfect for families"');
+    expect(retry).toContain('"safe neighborhood"');
+  });
+
+  it("still returns captions if the retry is flagged too (the UI warns)", async () => {
+    const fetchMock = mockFetchSequence(flagged());
+    const res = await POST(postRequest({ formData: validForm }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).variants[0].caption).toContain(
+      "Perfect for families"
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry clean output", async () => {
+    const fetchMock = mockFetchSequence(ok());
+    await POST(postRequest({ formData: validForm }));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
