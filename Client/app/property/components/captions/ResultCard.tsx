@@ -2,6 +2,8 @@
 
 import { FiCheck, FiCopy } from "react-icons/fi";
 import type { CaptionVariant } from "@/app/lib/types";
+import { findFairHousingIssues } from "@/app/lib/fairHousing";
+import FairHousingNotice from "../shared/FairHousingNotice";
 
 export default function CaptionResultCard({
   variant,
@@ -14,6 +16,7 @@ export default function CaptionResultCard({
 }) {
   const isCopied = copied === variant.name;
   const hashtagText = variant.hashtags.join(" ");
+  const issues = findFairHousingIssues(variant.caption);
 
   return (
     <section className="form-section group rounded-xl border border-transparent px-4 py-5 transition hover:border-[var(--card-border)] hover:bg-[color:var(--surface-soft)]/45">
@@ -55,6 +58,8 @@ export default function CaptionResultCard({
       <pre className="font-sans text-sm leading-relaxed whitespace-pre-wrap text-[color:var(--ink-base)]">
         {variant.caption}
       </pre>
+
+      <FairHousingNotice issues={issues} className="mt-3" />
 
       {hashtagText && (
         <p className="mt-4 rounded-lg bg-[color:var(--field-bg)] px-3 py-2 text-sm leading-relaxed text-[color:var(--ink-soft)]">

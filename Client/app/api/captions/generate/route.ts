@@ -7,6 +7,11 @@ import {
   parseDataUrl,
 } from "@/app/lib/captions/parse";
 import { generateValidated } from "@/app/lib/gemini/client";
+import {
+  FAIR_HOUSING_PROMPT_RULES,
+  fairHousingFeedback,
+  findFairHousingIssues,
+} from "@/app/lib/fairHousing";
 import { readJson, respond } from "@/app/lib/gemini/respond";
 
 export const maxDuration = 60;
@@ -74,6 +79,8 @@ Rules:
   ]
 }
 
+${FAIR_HOUSING_PROMPT_RULES}
+
 Listing details:
 ${listingSummary}`;
 
@@ -88,12 +95,18 @@ ${listingSummary}`;
         },
       }));
 
-    const payload = (strict: boolean) => ({
+    const payload = (strict: boolean, feedback?: string[]) => ({
       contents: [
         {
           role: "user",
           parts: [
-            { text: strict ? prompt + STRICT_SUFFIX : prompt },
+            {
+              text: strict
+                ? prompt +
+                  STRICT_SUFFIX +
+                  (feedback ? `\n${fairHousingFeedback(feedback)}` : "")
+                : prompt,
+            },
             ...imageParts,
           ],
         },
@@ -108,6 +121,10 @@ ${listingSummary}`;
       route: "captions/generate",
       buildPayload: payload,
       parse: parseCaptionReply,
+      check: (variants) =>
+        findFairHousingIssues(variants.map((v) => v.caption).join("\n")).map(
+          (i) => i.term
+        ),
     });
 
     return { variants };
