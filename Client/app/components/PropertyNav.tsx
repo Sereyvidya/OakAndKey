@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useAuthStore } from "@/app/lib/auth/store";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import { hasCompleteFlyerData } from "@/app/lib/flyer/guards";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
@@ -11,10 +12,13 @@ interface NavItem {
   href: string;
   label: string;
   requiresCompleteInfo?: boolean;
+  /** Only shown to signed-in users. */
+  requiresAuth?: boolean;
 }
 
-const nav: NavItem[] = [
+const ALL_NAV: NavItem[] = [
   { href: "/", label: "About" },
+  { href: "/listings", label: "My Listings", requiresAuth: true },
   { href: "/property/general", label: "Information" },
   { href: "/property/flyer", label: "Flyer", requiresCompleteInfo: true },
   { href: "/property/captions", label: "Captions", requiresCompleteInfo: true },
@@ -22,6 +26,8 @@ const nav: NavItem[] = [
 
 export default function PropertyNav() {
   const pathname = usePathname();
+  const signedIn = useAuthStore((s) => Boolean(s.user));
+  const nav = ALL_NAV.filter((item) => !item.requiresAuth || signedIn);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +58,7 @@ export default function PropertyNav() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <nav className="hidden items-center gap-9 md:flex">
+      <nav className="hidden items-center gap-6 whitespace-nowrap lg:flex lg:gap-8">
         {nav.map((item) => {
           const active = pathname === item.href;
           const blocked = item.requiresCompleteInfo && !canViewFlyer;
@@ -89,11 +95,11 @@ export default function PropertyNav() {
         })}
       </nav>
 
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
-          className="border-b-[2px] border-[var(--brand)] px-1 pb-1 text-base font-semibold text-[var(--ink-strong)] transition-colors hover:text-[var(--brand-strong)] focus:outline-none"
+          className="border-b-[2px] border-[var(--brand)] px-1 pb-1 text-base font-semibold whitespace-nowrap text-[var(--ink-strong)] transition-colors hover:text-[var(--brand-strong)] focus:outline-none"
         >
           <span className="flex items-center gap-1">
             {activeItem.label}

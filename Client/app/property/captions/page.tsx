@@ -7,6 +7,7 @@ import type {
   CaptionResponse,
   CaptionVariant,
 } from "@/app/lib/types";
+import { ensureDataUrl } from "@/app/lib/images/resize";
 import { postApi } from "@/app/lib/gemini/postApi";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import { generateCaptionVariants } from "@/app/lib/captions/generate";
@@ -82,13 +83,16 @@ export default function CaptionsPage() {
 
       const payload: CaptionRequest = {
         formData,
-        images: selectedImageIndexes
-          .map((idx) => images[idx])
-          .filter(Boolean)
-          .map((img) => ({
-            name: img?.name || "",
-            preview: img?.preview || "",
-          })),
+        // Saved photos are remote URLs; the API takes them inline as data URLs.
+        images: await Promise.all(
+          selectedImageIndexes
+            .map((idx) => images[idx])
+            .filter((img): img is NonNullable<typeof img> => Boolean(img))
+            .map(async (img) => ({
+              name: img.name || "",
+              preview: await ensureDataUrl(img.preview || "").catch(() => ""),
+            }))
+        ),
       };
 
       const data = await postApi<

@@ -9,6 +9,9 @@ export const supportedResidentialTypes = new Set(
 
 export const TITLE_MAX_CHARS = 70;
 
+/** Upper bound on photos per listing (keeps storage and the flyer sensible). */
+export const MAX_LISTING_PHOTOS = 12;
+
 export const US_STATE_CODES = [
   "AL",
   "AK",

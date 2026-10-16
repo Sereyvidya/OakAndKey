@@ -5,8 +5,11 @@ export type SizeUnit = "sqm" | "sqft";
 /** An uploaded or sample image; `preview` is a data URL or public path. */
 export interface ListingImage {
   name: string;
+  /** A data URL (just picked) or a public storage URL (saved). */
   preview: string;
   type?: "default-svg-logo";
+  /** Storage path once the image has been saved to the account. */
+  path?: string;
 }
 
 export interface ListingForm {
@@ -121,4 +124,39 @@ export interface FlyerTemplateProps {
   images: ListingImage[];
   theme?: FlyerTheme;
   templateCopy?: TemplateCopyState;
+}
+
+/** An agent's reusable details, saved once and applied to every listing. */
+export interface AgentProfile {
+  agentName: string;
+  agentCompanyName: string;
+  agentSocialLink: string;
+  agentPhone: string;
+  agentEmail: string;
+  agentCompanyLogo: ListingImage | null;
+  agentPhoto: ListingImage | null;
+  agentQrCode: ListingImage | null;
+}
+
+/** A listing as shown in the "My listings" grid. */
+export interface ListingSummary {
+  id: string;
+  title: string;
+  price: string;
+  address: string;
+  /** Public URL of the first photo, if any. */
+  cover: string;
+  updatedAt: string;
+}
+
+/** A fully loaded saved listing. */
+export interface SavedListing {
+  id: string;
+  /**
+   * Text fields only. Uploaded logo/photo/QR live on the agent profile; just
+   * the built-in default logo marker is kept here.
+   */
+  form: Omit<ListingForm, "agentCompanyLogo" | "agentQrCode" | "agentPhoto"> &
+    Partial<Pick<ListingForm, "agentCompanyLogo">>;
+  images: ListingImage[];
 }
