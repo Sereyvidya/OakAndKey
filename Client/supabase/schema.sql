@@ -67,6 +67,18 @@ create policy "media: upload to own folder" on storage.objects
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
+-- Deleting needs to be able to *see* the rows too (Postgres applies the select
+-- rule to DELETE ... WHERE name = ...). Without this, removing a listing's
+-- photos silently deletes nothing. Scoped to the user's own folder, so nobody
+-- can list other people's files; public image URLs work without it.
+drop policy if exists "media: read own files" on storage.objects;
+create policy "media: read own files" on storage.objects
+  for select to authenticated
+  using (
+    bucket_id = 'media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
 drop policy if exists "media: delete own files" on storage.objects;
 create policy "media: delete own files" on storage.objects
   for delete to authenticated

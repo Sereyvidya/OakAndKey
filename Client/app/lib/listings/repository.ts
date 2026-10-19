@@ -57,8 +57,20 @@ async function uploadImage(
 
 async function removeFiles(sb: SupabaseClient, paths: string[]) {
   if (paths.length === 0) return;
-  // Best effort: a leftover file is harmless, a failed save is not.
-  await sb.storage.from(MEDIA_BUCKET).remove(paths);
+  // Best effort: a leftover file is harmless, a failed save is not. But say so
+  // when storage deleted fewer files than asked (e.g. a missing policy), since
+  // that otherwise fails silently.
+  const { data, error } = await sb.storage.from(MEDIA_BUCKET).remove(paths);
+  if (error || (data?.length ?? 0) < paths.length) {
+    console.warn(
+      JSON.stringify({
+        event: "storage_remove_incomplete",
+        requested: paths.length,
+        removed: data?.length ?? 0,
+        error: error?.message,
+      })
+    );
+  }
 }
 
 export async function listListings(

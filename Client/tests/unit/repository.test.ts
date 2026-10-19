@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   deleteListing,
   listListings,
@@ -174,6 +174,30 @@ describe("listing reads and delete", () => {
       saved.images.map((i) => i.path!).sort()
     );
     expect(fake.files.size).toBe(0);
+  });
+});
+
+describe("storage deletes that do nothing", () => {
+  it("warns instead of failing silently when files could not be removed", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const fake = createFakeSupabase({ cannotDeleteFiles: true });
+    const saved = await saveListing(fake.client, USER, {
+      id: null,
+      form: form(),
+      images: [photo("a.jpg")],
+    });
+
+    await deleteListing(fake.client, saved.id);
+
+    expect(fake.rowsOf("listings")).toHaveLength(0); // the row is still deleted
+    expect(fake.files.size).toBe(1); // but the file is still there
+    const logged = JSON.parse(String(warn.mock.calls[0]![0]));
+    expect(logged).toMatchObject({
+      event: "storage_remove_incomplete",
+      requested: 1,
+      removed: 0,
+    });
+    warn.mockRestore();
   });
 });
 

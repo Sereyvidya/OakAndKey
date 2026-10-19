@@ -7,7 +7,9 @@ type Row = Record<string, unknown>;
  * (select/eq/order/limit/single/maybeSingle/upsert/delete, and storage).
  * It records calls so tests can assert what was uploaded and removed.
  */
-export function createFakeSupabase(opts: { failUpsertOn?: string } = {}) {
+export function createFakeSupabase(
+  opts: { failUpsertOn?: string; cannotDeleteFiles?: boolean } = {}
+) {
   const tables = new Map<string, Row[]>();
   const files = new Map<string, Blob>();
   const removed: string[] = [];
@@ -89,8 +91,12 @@ export function createFakeSupabase(opts: { failUpsertOn?: string } = {}) {
       },
       remove: async (paths: string[]) => {
         removed.push(...paths);
-        paths.forEach((p) => files.delete(p));
-        return { data: [], error: null };
+        // Like the real API, report only the objects that were actually deleted.
+        const deleted = paths.filter(
+          (p) => files.has(p) && !opts.cannotDeleteFiles
+        );
+        deleted.forEach((p) => files.delete(p));
+        return { data: deleted.map((name) => ({ name })), error: null };
       },
       getPublicUrl: (path: string) => ({
         data: {

@@ -1,7 +1,24 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+/**
+ * Reduces whatever was pasted into the env var to the project origin. The
+ * dashboard shows several URLs (e.g. ".../rest/v1/" for the data API); the
+ * client needs only "https://<ref>.supabase.co".
+ */
+export function normalizeSupabaseUrl(
+  raw: string | undefined
+): string | undefined {
+  const value = raw?.trim();
+  if (!value) return undefined;
+  try {
+    return new URL(value).origin;
+  } catch {
+    return undefined;
+  }
+}
+
+const url = normalizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
 /** Name of the public storage bucket created by supabase/schema.sql. */
 export const MEDIA_BUCKET = "media";
