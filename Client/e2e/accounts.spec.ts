@@ -28,12 +28,12 @@ test("accounts: sign in, save, reopen, export, delete, sign out", async ({
   await expect(page).toHaveURL(/\/listings/);
   await expect(page.getByText("No saved listings yet")).toBeVisible();
 
-  // Build the sample listing and save it.
+  // Build the sample listing; Save & Continue saves it, then opens the flyer.
   await page.getByRole("button", { name: "New listing" }).click();
   await expect(page).toHaveURL(/\/property\/general/);
   await page.getByRole("button", { name: "Sample" }).click();
-  await page.getByRole("button", { name: "Save listing" }).click();
-  await expect(page.getByText("Saved ✓")).toBeVisible();
+  await page.getByRole("button", { name: /save & continue/i }).click();
+  await expect(page).toHaveURL(/\/property\/flyer/);
 
   // 4 listing photos + the agent headshot uploaded; the default logo is not stored.
   expect(db.uploads.filter((p) => p.includes("/profile/"))).toHaveLength(1);
@@ -43,8 +43,9 @@ test("accounts: sign in, save, reopen, export, delete, sign out", async ({
 
   // Saving again updates the same row and uploads nothing new.
   const uploaded = db.uploads.length;
-  await page.getByRole("button", { name: "Save listing" }).click();
-  await expect(page.getByText("Saved ✓")).toBeVisible();
+  await page.getByRole("link", { name: "Information" }).first().click();
+  await page.getByRole("button", { name: /save & continue/i }).click();
+  await expect(page).toHaveURL(/\/property\/flyer/);
   expect(db.listings).toHaveLength(1);
   expect(db.uploads).toHaveLength(uploaded);
 
@@ -96,4 +97,53 @@ test("accounts: visiting My Listings signed out redirects to sign in", async ({
   await mockSupabase(page);
   await page.goto("/listings");
   await expect(page).toHaveURL(/\/login\?next=\/listings/);
+});
+
+test("accounts: a failed save keeps you on the form, and you can continue anyway", async ({
+  page,
+}) => {
+  const db = await mockSupabase(page);
+  await page.goto("/login");
+  await page.getByLabel("Email").fill("agent@example.com");
+  await page.getByLabel("Password").fill("correct-horse");
+  await page
+    .getByRole("button", { name: "Sign in", exact: true })
+    .last()
+    .click();
+  await page.getByRole("button", { name: "New listing" }).click();
+  await page.getByRole("button", { name: "Sample" }).click();
+
+  db.failListingWrites = true;
+  await page.getByRole("button", { name: /save & continue/i }).click();
+  await expect(page.getByText("Could not save the listing.")).toBeVisible();
+  await expect(page).toHaveURL(/\/property\/general/);
+  expect(db.listings).toHaveLength(0);
+
+  // Retrying after the problem clears saves and continues.
+  db.failListingWrites = false;
+  await page.getByRole("button", { name: /save & continue/i }).click();
+  await expect(page).toHaveURL(/\/property\/flyer/);
+  expect(db.listings).toHaveLength(1);
+
+  // ...and "Continue without saving" skips saving.
+  db.failListingWrites = true;
+  await page.getByRole("link", { name: "Information" }).first().click();
+  await page.getByRole("button", { name: /save & continue/i }).click();
+  await page.getByRole("button", { name: "Continue without saving" }).click();
+  await expect(page).toHaveURL(/\/property\/flyer/);
+});
+
+test("signed out: Save & Continue just continues, with a sign-in hint", async ({
+  page,
+}) => {
+  const db = await mockSupabase(page);
+  await page.goto("/property/general");
+  await page.getByRole("button", { name: "Sample" }).click();
+  await expect(
+    page.getByRole("link", { name: "Sign in to save" })
+  ).toBeVisible();
+  await page.getByRole("button", { name: /save & continue/i }).click();
+  await expect(page).toHaveURL(/\/property\/flyer/);
+  expect(db.uploads).toHaveLength(0);
+  expect(db.listings).toHaveLength(0);
 });

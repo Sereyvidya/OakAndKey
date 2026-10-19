@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { avatarFromFile, logoFromFile, photoFromFile } from "@/app/lib/files";
 import { MAX_LISTING_PHOTOS } from "@/app/lib/listing/constants";
 import type { ListingForm } from "@/app/lib/types";
+import { useListingSaver } from "../components/form/useListingSaver";
 import PropertyForm, {
   type FieldChange,
 } from "../components/form/PropertyForm";
@@ -24,8 +25,13 @@ export default function GeneralInfoPage() {
 
   const [photoNotice, setPhotoNotice] = useState("");
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const saver = useListingSaver();
+
+  // The form has already validated by the time this runs. With an account,
+  // Save & Continue also saves the listing before moving on.
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (saver.enabled && !(await saver.save())) return;
     router.push("/property/flyer");
   };
 
@@ -86,6 +92,10 @@ export default function GeneralInfoPage() {
       onClearCompanyLogo={() => setFormData({ agentCompanyLogo: null })}
       onImageChange={handleImageChange}
       photoNotice={photoNotice}
+      saving={saver.status === "saving"}
+      saveError={saver.status === "error" ? saver.error : undefined}
+      onContinueWithoutSaving={() => router.push("/property/flyer")}
+      offerSignIn={saver.offerSignIn}
       onClearImages={() => {
         setImages([]);
         setPhotoNotice("");

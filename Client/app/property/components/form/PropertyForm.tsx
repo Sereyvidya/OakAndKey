@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useEffect,
   useMemo,
@@ -29,7 +30,7 @@ import { composeAddress } from "@/app/lib/address";
 import { findFairHousingIssues } from "@/app/lib/fairHousing";
 import FairHousingNotice from "../shared/FairHousingNotice";
 import ErrorText from "./ErrorText";
-import SaveListingButton from "./SaveListingButton";
+import InlineSpinner from "../shared/InlineSpinner";
 import FileInput from "./FileInput";
 import GeminiButton from "./GeminiButton";
 import InputWithIcon from "./InputWithIcon";
@@ -75,7 +76,15 @@ interface PropertyFormProps {
   onRemoveImage: (index: number) => void;
   /** Shown under the photo picker, e.g. when the photo limit trimmed a selection. */
   photoNotice?: string;
-  onSubmit?: (e: FormEvent<HTMLFormElement>) => void;
+  onSubmit?: (e: FormEvent<HTMLFormElement>) => void | Promise<void>;
+  /** Shown while the listing is being saved to the account. */
+  saving?: boolean;
+  /** Why the last save failed, if it did. */
+  saveError?: string;
+  /** Lets the agent carry on after a failed save. */
+  onContinueWithoutSaving?: () => void;
+  /** Accounts exist but nobody is signed in: hint that signing in enables saving. */
+  offerSignIn?: boolean;
   onPropertyTypeSelect: (value: string) => void;
 }
 
@@ -93,6 +102,10 @@ export default function PropertyForm({
   onRemoveImage,
   photoNotice,
   onSubmit,
+  saving,
+  saveError,
+  onContinueWithoutSaving,
+  offerSignIn,
   onPropertyTypeSelect,
 }: PropertyFormProps) {
   const [isPropertyTypeOpen, setIsPropertyTypeOpen] = useState(false);
@@ -1032,12 +1045,35 @@ export default function PropertyForm({
         </section>
 
         <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[var(--card-border)] pt-6">
-          <SaveListingButton />
+          {saveError ? (
+            <span role="alert" className="form-error-text text-sm">
+              {saveError}{" "}
+              {onContinueWithoutSaving ? (
+                <button
+                  type="button"
+                  onClick={onContinueWithoutSaving}
+                  className="underline"
+                >
+                  Continue without saving
+                </button>
+              ) : null}
+            </span>
+          ) : null}
+          {offerSignIn ? (
+            <Link
+              href="/login?next=/property/general"
+              className="text-sm text-[color:var(--ink-muted)] underline underline-offset-2 hover:text-[color:var(--ink-strong)]"
+            >
+              Sign in to save
+            </Link>
+          ) : null}
           <button
             type="submit"
-            className="hover-lift rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-[#0b0f14] hover:bg-[var(--brand-strong)]"
+            disabled={saving}
+            className="hover-lift inline-flex items-center gap-2 rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-[#0b0f14] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Save & Continue
+            {saving ? <InlineSpinner /> : null}
+            {saving ? "Saving..." : "Save & Continue"}
           </button>
         </div>
       </form>

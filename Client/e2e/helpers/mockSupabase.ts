@@ -42,6 +42,8 @@ export async function mockSupabase(page: Page) {
     uploads: [] as string[],
     removed: [] as string[],
     signedIn: false,
+    /** When true, writes to `listings` fail with a 500. */
+    failListingWrites: false,
   };
 
   const cors = {
@@ -144,6 +146,9 @@ export async function mockSupabase(page: Page) {
         return json(route, out);
       }
       if (method === "POST") {
+        if (table === "listings" && state.failListingWrites) {
+          return json(route, { message: "boom" }, 500);
+        }
         const row = req.postDataJSON() as Row;
         const i = rows.findIndex((r) => r.id === row.id);
         if (i >= 0) rows[i] = { ...rows[i], ...row };
