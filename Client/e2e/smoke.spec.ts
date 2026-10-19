@@ -27,7 +27,7 @@ test("sample listing -> flyer templates -> export -> AI captions", async ({
   await expect(page.getByLabel("Title")).toHaveValue(
     "Modern 4-Bedroom Family Home"
   );
-  await page.getByRole("button", { name: /save & continue/i }).click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page).toHaveURL(/\/property\/flyer/);
 
   for (const template of ["Showcase", "Gallery", "Modern"]) {

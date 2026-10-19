@@ -133,7 +133,7 @@ test("accounts: a failed save keeps you on the form, and you can continue anyway
   await expect(page).toHaveURL(/\/property\/flyer/);
 });
 
-test("signed out: Save & Continue just continues, with a sign-in hint", async ({
+test("signed out: the button just says Continue, with a sign-in hint", async ({
   page,
 }) => {
   const db = await mockSupabase(page);
@@ -142,7 +142,10 @@ test("signed out: Save & Continue just continues, with a sign-in hint", async ({
   await expect(
     page.getByRole("link", { name: "Sign in to save" })
   ).toBeVisible();
-  await page.getByRole("button", { name: /save & continue/i }).click();
+  await expect(
+    page.getByRole("button", { name: /save & continue/i })
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
   await expect(page).toHaveURL(/\/property\/flyer/);
   expect(db.uploads).toHaveLength(0);
   expect(db.listings).toHaveLength(0);

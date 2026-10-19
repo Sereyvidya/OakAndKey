@@ -28,7 +28,8 @@ export default function GeneralInfoPage() {
   const saver = useListingSaver();
 
   // The form has already validated by the time this runs. With an account,
-  // Save & Continue also saves the listing before moving on.
+  // With an account, the button reads "Save & Continue" and saves the listing
+  // before moving on; otherwise it is just "Continue".
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (saver.enabled && !(await saver.save())) return;
@@ -93,6 +94,7 @@ export default function GeneralInfoPage() {
       onImageChange={handleImageChange}
       photoNotice={photoNotice}
       saving={saver.status === "saving"}
+      submitLabel={saver.enabled ? "Save & Continue" : "Continue"}
       saveError={saver.status === "error" ? saver.error : undefined}
       onContinueWithoutSaving={() => router.push("/property/flyer")}
       offerSignIn={saver.offerSignIn}

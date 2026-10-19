@@ -79,6 +79,8 @@ interface PropertyFormProps {
   onSubmit?: (e: FormEvent<HTMLFormElement>) => void | Promise<void>;
   /** Shown while the listing is being saved to the account. */
   saving?: boolean;
+  /** Text of the submit button; "Continue" when there is nothing to save. */
+  submitLabel?: string;
   /** Why the last save failed, if it did. */
   saveError?: string;
   /** Lets the agent carry on after a failed save. */
@@ -103,6 +105,7 @@ export default function PropertyForm({
   photoNotice,
   onSubmit,
   saving,
+  submitLabel = "Save & Continue",
   saveError,
   onContinueWithoutSaving,
   offerSignIn,
@@ -1073,7 +1076,7 @@ export default function PropertyForm({
             className="hover-lift inline-flex items-center gap-2 rounded-xl bg-[var(--brand)] px-5 py-2.5 text-sm font-bold text-[#0b0f14] hover:bg-[var(--brand-strong)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? <InlineSpinner /> : null}
-            {saving ? "Saving..." : "Save & Continue"}
+            {saving ? "Saving..." : submitLabel}
           </button>
         </div>
       </form>
