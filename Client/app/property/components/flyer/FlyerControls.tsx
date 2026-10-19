@@ -7,7 +7,7 @@ import {
   type SetStateAction,
 } from "react";
 import type { FlyerTemplate, TemplateCopyState } from "@/app/lib/types";
-import { fileToImage } from "@/app/lib/files";
+import { logoFromFile } from "@/app/lib/files";
 import InlineSpinner from "../shared/InlineSpinner";
 import {
   buildFlyerTheme,
@@ -134,7 +134,7 @@ export default function FlyerControls({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const img = await fileToImage(file);
+    const img = await logoFromFile(file);
     setFormData({ agentQrCode: img });
   };
 

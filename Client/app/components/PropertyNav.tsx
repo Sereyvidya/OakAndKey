@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useAuthStore } from "@/app/lib/auth/store";
+import { getSupabase, isSupabaseConfigured } from "@/app/lib/supabase/client";
 import { usePropertyStore } from "@/app/lib/propertyStore";
 import { hasCompleteFlyerData } from "@/app/lib/flyer/guards";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
@@ -11,17 +13,37 @@ interface NavItem {
   href: string;
   label: string;
   requiresCompleteInfo?: boolean;
+  /** Only shown to signed-in users. */
+  requiresAuth?: boolean;
 }
 
-const nav: NavItem[] = [
+const ALL_NAV: NavItem[] = [
   { href: "/", label: "About" },
+  { href: "/listings", label: "My Listings", requiresAuth: true },
   { href: "/property/general", label: "Information" },
   { href: "/property/flyer", label: "Flyer", requiresCompleteInfo: true },
   { href: "/property/captions", label: "Captions", requiresCompleteInfo: true },
 ];
 
+/** Same look as the nav links, so Sign in / Sign out don't stand out as a different control. */
+const desktopLinkClass =
+  "group relative pb-2 text-base font-semibold tracking-[0.02em] text-[var(--ink-soft)] transition-colors duration-200 hover:text-[var(--ink-strong)]";
+const dropdownLinkClass =
+  "group block w-full py-1.5 text-right text-base font-semibold text-[var(--ink-soft)] transition-colors hover:text-[var(--ink-strong)]";
+
+const Underline = () => (
+  <span className="absolute bottom-0 left-0 h-[2px] w-0 rounded-full bg-[var(--brand)] opacity-0 transition-all duration-300 group-hover:w-full group-hover:opacity-60" />
+);
+
 export default function PropertyNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const authReady = useAuthStore((s) => s.ready);
+  const signedIn = Boolean(user);
+  /** Accounts are optional: hide the sign-in controls when they aren't configured. */
+  const showAccount = isSupabaseConfigured && authReady;
+  const nav = ALL_NAV.filter((item) => !item.requiresAuth || signedIn);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -45,6 +67,13 @@ export default function PropertyNav() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const signOut = async () => {
+    setOpen(false);
+    await getSupabase()?.auth.signOut();
+    usePropertyStore.getState().reset();
+    router.push("/");
+  };
+
   const getHref = (item: NavItem) => {
     if (item.requiresCompleteInfo && !canViewFlyer) return pathname;
     return item.href;
@@ -52,7 +81,7 @@ export default function PropertyNav() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <nav className="hidden items-center gap-9 md:flex">
+      <nav className="hidden items-center gap-5 whitespace-nowrap lg:flex">
         {nav.map((item) => {
           const active = pathname === item.href;
           const blocked = item.requiresCompleteInfo && !canViewFlyer;
@@ -87,13 +116,38 @@ export default function PropertyNav() {
             </Link>
           );
         })}
+
+        {showAccount ? (
+          <>
+            <span
+              aria-hidden="true"
+              className="h-5 w-px bg-[var(--card-border)]"
+            />
+            {user ? (
+              <button
+                type="button"
+                onClick={signOut}
+                title={`Signed in as ${user.email}`}
+                className={desktopLinkClass}
+              >
+                Sign out
+                <Underline />
+              </button>
+            ) : (
+              <Link href="/login" className={desktopLinkClass}>
+                Sign in
+                <Underline />
+              </Link>
+            )}
+          </>
+        ) : null}
       </nav>
 
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <button
           type="button"
           onClick={() => setOpen((current) => !current)}
-          className="border-b-[2px] border-[var(--brand)] px-1 pb-1 text-base font-semibold text-[var(--ink-strong)] transition-colors hover:text-[var(--brand-strong)] focus:outline-none"
+          className="border-b-[2px] border-[var(--brand)] px-1 pb-1 text-base font-semibold whitespace-nowrap text-[var(--ink-strong)] transition-colors hover:text-[var(--brand-strong)] focus:outline-none"
         >
           <span className="flex items-center gap-1">
             {activeItem.label}
@@ -107,7 +161,7 @@ export default function PropertyNav() {
         </button>
 
         {open && (
-          <div className="absolute right-0 z-30 mt-4 w-27 rounded-xl border border-[var(--card-border)] bg-[var(--surface)] px-3 py-2 shadow-[0_14px_30px_rgba(20,26,36,0.10)]">
+          <div className="absolute right-0 z-30 mt-4 w-max min-w-27 rounded-xl border border-[var(--card-border)] bg-[var(--surface)] px-3 py-2 shadow-[0_14px_30px_rgba(20,26,36,0.10)]">
             {nav
               .filter((item) => item.href !== pathname)
               .map((item) => {
@@ -149,6 +203,29 @@ export default function PropertyNav() {
                   </Link>
                 );
               })}
+
+            {showAccount ? (
+              <div className="mt-1.5 border-t border-[var(--card-border)] pt-1.5">
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={signOut}
+                    title={`Signed in as ${user.email}`}
+                    className={dropdownLinkClass}
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className={dropdownLinkClass}
+                  >
+                    Sign in
+                  </Link>
+                )}
+              </div>
+            ) : null}
           </div>
         )}
       </div>
