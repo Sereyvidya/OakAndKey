@@ -147,3 +147,33 @@ test("signed out: Save & Continue just continues, with a sign-in hint", async ({
   expect(db.uploads).toHaveLength(0);
   expect(db.listings).toHaveLength(0);
 });
+
+test("small screens: Sign in and Sign out live in the nav dropdown", async ({
+  page,
+}) => {
+  await mockSupabase(page);
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto("/");
+
+  // No separate pill button; the entry is inside the dropdown.
+  await expect(page.getByRole("link", { name: "Sign in" })).toHaveCount(0);
+  await page.getByRole("button", { name: "About" }).click();
+  await page.getByRole("link", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/login/);
+
+  await page.getByLabel("Email").fill("agent@example.com");
+  await page.getByLabel("Password").fill("correct-horse");
+  await page
+    .getByRole("button", { name: "Sign in", exact: true })
+    .last()
+    .click();
+  await expect(page).toHaveURL(/\/listings/);
+
+  await page.getByRole("button", { name: "My Listings" }).click();
+  await expect(page.getByRole("link", { name: "Sign in" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL("/");
+
+  await page.getByRole("button", { name: "About" }).click();
+  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
+});

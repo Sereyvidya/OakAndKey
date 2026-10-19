@@ -5,7 +5,6 @@ import Image from "next/image";
 import "./globals.css";
 import PropertyNav from "./components/PropertyNav";
 import AuthSync from "./components/AuthSync";
-import AccountMenu from "./components/AccountMenu";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -50,10 +49,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 sm:gap-4">
-              <PropertyNav />
-              <AccountMenu />
-            </div>
+            <PropertyNav />
           </div>
         </header>
         {children}
